@@ -29,10 +29,13 @@ def main():
     """Read infile and output json-file and filenames mapping file."""
     try:
         metadata = pd.read_excel(args.infile, sheetname="Cypern", converters=cypern_converters)
+        print("Loaded Excel-file into DataFrame OK: ")
+        print(metadata.info())
+
     except IOError as e:
         print("IOError: {}".format(e))
 
-    print(metadata.info())
+
 
 
 if __name__ == '__main__':
