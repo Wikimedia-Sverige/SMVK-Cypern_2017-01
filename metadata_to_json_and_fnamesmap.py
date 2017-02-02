@@ -10,21 +10,30 @@ Output: JSON-file `cypern_metadata.json" containg dict in the current directory
 import pandas as pd
 import argparse
 
-def main():
-    """Illustrate function-level docstring.
-    
-    Note that all docstrings begin with a one-line summary. The summary is
-    written in the imperative mood ("do", "use", "find", "return", "render",
-    etc) and ends with a period. The method signature is not, in any way,
-    duplicated into the comments (that would be difficult to maintain).
-    All subsequent paragraphs in a docstring are indented exactly the same as
-    the summary line. The same applies to the closing quotation marks.
-    
-    """
+
+def strip(text):
     try:
-        metadata = pd.read_excel(args.infile)
+        return text.strip()
+    except AttributeError:
+        return text
+
+
+cypern_converters = {"Fotonummer": strip, "Postnr": strip, "Nyckelord": strip, "Beskrivning": strip, "Land": strip,
+                     "foto": strip,
+                     "Region, foto": strip, "Ort, foto": strip, "Geograf namn, alternativ": strip, "Fotodatum": strip,
+                     "Personnamn / fotograf": strip, "Personnamn / avbildad": strip, "Sökord": strip,
+                     "Händelse / var närvarande vid": strip, "Länk": strip}
+
+
+def main():
+    """Read infile and output json-file and filenames mapping file."""
+    try:
+        metadata = pd.read_excel(args.infile, sheetname="Cypern", converters=cypern_converters)
     except IOError as e:
         print("IOError: {}".format(e))
+
+    print(metadata.info())
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
