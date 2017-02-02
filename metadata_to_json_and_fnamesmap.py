@@ -11,6 +11,12 @@ import pandas as pd
 import argparse
 
 
+def create_json_dict_file(metadata, outfile):
+    # TODO: convert DataFrame to dict of rows
+    fileobject = open(outfile, "w")
+    fileobject.write(metadata.to_json())
+
+
 def strip(text):
     try:
         return text.strip()
@@ -32,16 +38,16 @@ def main():
         print("Loaded Excel-file into DataFrame OK: ")
         print(metadata.info())
 
+        create_json_dict_file(metadata, args.outfile)
+
     except IOError as e:
         print("IOError: {}".format(e))
 
 
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("--infile",default="../excel-export.xls")
-    parser.add_argument("--fname-file",default="SMVK-Cypern_2017-01_filename_mappings.csv")
-    parser.add_argument("-outfile", default="SMVK-Cypern_2017-01_metadata.json")
+    parser.add_argument("--infile", default="../excel-export.xls")
+    parser.add_argument("--fnameFile", default="SMVK-Cypern_2017-01_filename_mappings.csv")
+    parser.add_argument("--outfile", default="SMVK-Cypern_2017-01_metadata.json")
     args = parser.parse_args()
     main()
