@@ -19,7 +19,7 @@ def create_new_filenames(df, image_dir):
     :returns {"old_name":"new_name"}
     """
     fname_dict = {}
-    # TODO: add logic to create new filenames after review of https://phabricator.wikimedia.org/T156612
+    # TODO: add logic to create new filenames after review of https://phabricator.wikimedia.org/T156612 [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/2]
 
     return fname_dict
 
@@ -39,7 +39,7 @@ cypern_converters = {"Fotonummer": strip, "Postnr": strip, "Nyckelord": strip, "
 
 def create_filenames_mapping_file(new_old_filenames_dict, metadata, fname_out, image_dir):
     """Locates the external HD depending on platform and scans files and maps to json-file names.
-    TODO: Add function to generate Commons names and add to json_file."""
+    TODO: Add function to generate Commons names and add to json_file.""" [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/3]
 
     assert isinstance(new_old_filenames_dict, dict)
 
@@ -75,7 +75,7 @@ def create_metadata_json_blob(metadata, new_old_filenames_dict, json_out):
 
     fileobject = open(json_out, "w")
 
-    # TODO: create metadata dictionary, del dict["Fotonummer"], conc metadata with mappings_dict
+    # TODO: create metadata dictionary, del dict["Fotonummer"], conc metadata with mappings_dict [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/4]
     conc_metadata = None
 
     fileobject.write(conc_metadata)
