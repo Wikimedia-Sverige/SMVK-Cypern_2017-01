@@ -38,8 +38,8 @@ cypern_converters = {"Fotonummer": strip, "Postnr": strip, "Nyckelord": strip, "
 
 
 def create_filenames_mapping_file(new_old_filenames_dict, metadata, fname_out, image_dir):
-    """Locates the external HD depending on platform and scans files and maps to json-file names.
-    TODO: Add function to generate Commons names and add to json_file.""" [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/3]
+    """Locates the external HD depending on platform and scans files and maps to json-file names."""
+    # TODO: Add function to generate Commons names and add to json_file. [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/3]
 
     assert isinstance(new_old_filenames_dict, dict)
 
@@ -73,6 +73,8 @@ def create_filenames_mapping_file(new_old_filenames_dict, metadata, fname_out, i
 def create_metadata_json_blob(metadata, new_old_filenames_dict, json_out):
     """Adds new filenames to metadata and stores it in a file as json-dictionary"""
 
+    # TODO: Add SMVK-MM-Link
+
     fileobject = open(json_out, "w")
 
     # TODO: create metadata dictionary, del dict["Fotonummer"], conc metadata with mappings_dict [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/4]
@@ -88,11 +90,11 @@ def main(args):
         print("Loaded Excel-file into DataFrame OK: ")
         print(metadata.info())
 
-        new_old_filenames_dict = create_new_filenames(metadata, args.imageDir)
+        new_old_filenames_dict = create_new_filenames(metadata, args.image_dir)
         
-        create_filenames_mapping_file(new_old_filenames_dict, metadata, args.fname_out, args.imageDir)
+        create_filenames_mapping_file(new_old_filenames_dict, metadata, args.fname_out, args.image_dir)
         
-        create_metadata_json_blob(metadata, new_old_filenames_dict, args.jsonOut)
+        create_metadata_json_blob(metadata, new_old_filenames_dict, args.json_out)
 
     except IOError as e:
         print("IOError: {}".format(e))
@@ -101,8 +103,8 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--metadata", default="../excel-export.xls")
-    parser.add_argument("--imageDir", default="/media/mos/My Passport/Wikimedia/Cypern")
-    parser.add_argument("--fnameOut", default="SMVK-Cypern_2017-01_filename_mappings.csv")
-    parser.add_argument("--jsonOut", default="SMVK-Cypern_2017-01_metadata.json")
+    parser.add_argument("--image_dir", default="/media/mos/My Passport/Wikimedia/Cypern")
+    parser.add_argument("--fname_out", default="SMVK-Cypern_2017-01_filename_mappings.csv")
+    parser.add_argument("--json_out", default="SMVK-Cypern_2017-01_metadata.json")
     arguments = parser.parse_args()
     main(arguments)
