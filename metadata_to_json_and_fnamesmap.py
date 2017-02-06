@@ -24,6 +24,24 @@ cypern_converters = {"Fotonummer": strip, "Postnr.": strip, "Nyckelord": strip, 
                      "Fotodatum": strip, "Personnamn / fotograf": strip, "Personnamn / avbildad": strip, "Sökord": strip,
                      "Händelse / var närvarande vid": strip, "Länk": strip}
 
+
+def check_image_dir(image_dir):
+    """Ensures that images are all in one directory and has extension .tif"""
+
+    for root, dirs, files in os.walk(image_dir):
+        if len(dirs) > 0:
+            print("{} subdirectories found in path 'image_dir': {}".format(len(dirs), dirs))
+            print("Expected no subdirectories - exiting.")
+        else:
+            for file in files:
+                ext = os.path.splitext(file)
+                if ext != ".tif":
+                    print("Unexpected extension: {} for file {}".format(ext, file))
+                else:
+                    print(ext)
+    print("Succesfully finished checking that image files looks like expected.")
+
+
 def populate_new_dict_with_metadata(metadata, new_dict):
     for fotonr in metadata.Fotonummer:
         new_dict[fotonr] = {}
@@ -50,24 +68,11 @@ def populate_new_dict_with_metadata(metadata, new_dict):
 
     return new_dict
 
-def check_image_dir(image_dir):
-    """Ensures that images are all in one directory and has extension .tif"""
 
-    for root, dirs, files in os.walk(image_dir):
-        if len(dirs) > 0:
-            print("{} subdirectories found in path 'image_dir': {}".format(len(dirs), dirs))
-            print("Expected no subdirectories - exiting.")
-        else:
-            for file in files:
-                ext = os.path.splitext(file)
-                if ext != ".tif":
-                    print("Unexpected extension: {} for file {}".format(ext, file))
-                else:
-                    print(ext)
-    print("Succesfully finished checking that image files looks like expected.")
-
-def add_commons_filenames_to_dict(metadata, new_dict):
-    """Creates commons filename according to https://phabricator.wikimedia.org/T156612 and ouputs to new_dict"""
+def add_commons_filenames_to_dict(metadata, populated_dict):
+    """Creates commons filename according to https://phabricator.wikimedia.org/T156612 and ouputs to new_dict
+    :type populated_dict: dictionary
+    """
 
     for index, row in metadata.iterrows():
         commons_name = ""
@@ -76,19 +81,32 @@ def add_commons_filenames_to_dict(metadata, new_dict):
         commons_name += row["Fotonummer"]
         commons_name += ".tif"
 
-        new_dict[row["Fotonummer"]]["commons_fname"] = commons_name
+        populated_dict[row["Fotonummer"]]["commons_fname"] = commons_name
 
-        print("Fotonummer: {} - Commons name: {}".format(metadata["Fotonummer"], commons_name))
-        return new_dict
+    return populated_dict
 
-def add_smvk_mm_link_to_dict(metadata, new_dict):
+def add_smvk_mm_link_to_dict(metadata, fname_dict):
 
-    # TODO: Add SMVK-MM-Link, see https://sv.wikipedia.org/wiki/Mall:SMVK-MM-l%C3%A4nk [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/5]
+    # TODO: Add SMVK-MM-Link [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/5]
     for index, row in metadata.iterrows():
+        smvk_link = ""
+        smvk_link += "{{SMVK-MM-link|"
+
         url = row["Länk"]
-        url_str = url.to_string()
-        obj_id = url_str.rpartition("/")[2]
-        print(obj_id)
+        obj_id = url.rpartition("/")[2]
+        smvk_link += obj_id
+
+        smvk_link += "|"
+
+        smvk_link += "Fotonummer: "
+        smvk_link += row["Fotonummer"]
+
+        smvk_link += "}}"
+
+        fname_dict[row["Fotonummer"]]["smvk_link"] = smvk_link
+
+    return fname_dict
+
 
 def create_linked_filenamesmapping_wikitable_file(new_dict):
     pass
@@ -111,11 +129,13 @@ def main(args):
         check_image_dir(args.image_dir)
 
         populated_dict = populate_new_dict_with_metadata(metadata, new_dict)
-        print("populated_dict: {}".format(populated_dict))
+        #print("populated_dict: {}".format(populated_dict))
 
-        #dict_with_commons_filenames = add_commons_filenames_to_dict(metadata, new_dict)
-        #print(dict_with_commons_filenames)
-        #dict_with_smvk_mm_link = add_smvk_mm_link_to_dict(metadata, dict_with_commons_filenames)
+        dict_with_commons_filenames = add_commons_filenames_to_dict(metadata, populated_dict)
+        #print("dict_with_commons_filenames: {}".format(dict_with_commons_filenames))
+
+        dict_with_smvk_mm_link = add_smvk_mm_link_to_dict(metadata, dict_with_commons_filenames)
+        print(dict_with_smvk_mm_link)
 
         #create_linked_filenamesmapping_wikitable_file(dict_with_smvk_mm_link)
 
