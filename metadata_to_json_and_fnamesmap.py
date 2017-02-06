@@ -50,8 +50,7 @@ def populate_new_dict_with_metadata(metadata, new_dict):
     metadata.fillna("", inplace=True)
 
     for index, row in metadata.iterrows():
-        #print(row)
-        #break
+        # TODO: Ensure no datetimes sneek in here!
         new_dict[row["Fotonummer"]]["Postnummer"] = row["Postnr."]
         new_dict[row["Fotonummer"]]["Nyckelord"] = row["Nyckelord"]
         new_dict[row["Fotonummer"]]["Beskrivning"] = row["Beskrivning"]
@@ -86,8 +85,7 @@ def add_commons_filenames_to_dict(metadata, populated_dict):
     return populated_dict
 
 def add_smvk_mm_link_to_dict(metadata, fname_dict):
-
-    # TODO: Add SMVK-MM-Link [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/5]
+    """Populates template SMVK-MM-link and appends to dictionary."""
     for index, row in metadata.iterrows():
         smvk_link = ""
         smvk_link += "{{SMVK-MM-link|"
@@ -108,13 +106,32 @@ def add_smvk_mm_link_to_dict(metadata, fname_dict):
     return fname_dict
 
 
-def create_linked_filenamesmapping_wikitable_file(new_dict):
-    pass
+def create_linked_filenamesmapping_file(metadata_dict):
+    """Inputs dictionary and outputs CSV-file with old vs new filenames.
+    original|commons
+    :output fileobject "
+    """
+
+    outfile = open("./SMVK-Cypern_filenames_mappings.csv","w")
+    for fotonr in metadata_dict:
+        old_name = fotonr + ".tif"
+        new_name = metadata_dict[fotonr]["commons_fname"]
+        outfile.write(old_name + "|" + new_name + "\n")
+
+    outfile.close()
+
+    print("Successfully wrote file './SMVK-Cypern_filenames_mappings.csv'")
 
 
-def save_metadata_json_blob(new_dict):
-    pass
+def save_metadata_json_blob(metadata_dict, json_out):
+    """Save json dictionary to file.
+    :output fileobjet "./SMVK-Cypern_2017-01_metadata.json"
+    """
+    outfile = open(json_out,"w")
+    outfile.write(json.dumps(metadata_dict, ensure_ascii=False, indent=4))
+    outfile.close()
 
+    print("Successfully wrote file {}".format(json_out))
 
 def main(args):
     """Read infile and output json-file and filenames mapping file."""
@@ -137,9 +154,9 @@ def main(args):
         dict_with_smvk_mm_link = add_smvk_mm_link_to_dict(metadata, dict_with_commons_filenames)
         print(dict_with_smvk_mm_link)
 
-        #create_linked_filenamesmapping_wikitable_file(dict_with_smvk_mm_link)
+        create_linked_filenamesmapping_file(dict_with_smvk_mm_link)
 
-        #save_metadata_json_blob(dict_with_smvk_mm_link, args.json_out)
+        save_metadata_json_blob(dict_with_smvk_mm_link, args.json_out)
 
     except IOError as e:
         print("IOError: {}".format(e))
