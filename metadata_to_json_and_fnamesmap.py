@@ -19,8 +19,8 @@ def strip(text):
         return text
 
 
-cypern_converters = {"Fotonummer": strip, "Postnr": strip, "Nyckelord": strip, "Beskrivning": strip, "Land": strip,
-                     "foto": strip, "Region, foto": strip, "Ort, foto": strip, "Geograf namn, alternativ": strip,
+cypern_converters = {"Fotonummer": strip, "Postnr.": strip, "Nyckelord": strip, "Beskrivning": strip, "Land, foto": strip,
+                     "Region, foto": strip, "Ort, foto": strip, "Geograf namn, alternativ": strip,
                      "Fotodatum": strip, "Personnamn / fotograf": strip, "Personnamn / avbildad": strip, "Sökord": strip,
                      "Händelse / var närvarande vid": strip, "Länk": strip}
 
@@ -28,8 +28,25 @@ def populate_new_dict_with_metadata(metadata, new_dict):
     for fotonr in metadata.Fotonummer:
         new_dict[fotonr] = {}
 
-    for index, row in metdata.iterrows():
-        pass #TODO: populate dict with metadata
+    # ensure empty fields are ""
+    metadata.fillna("", inplace=True)
+
+    for index, row in metadata.iterrows():
+        #print(row)
+        #break
+        new_dict[row["Fotonummer"]]["Postnummer"] = row["Postnr."]
+        new_dict[row["Fotonummer"]]["Nyckelord"] = row["Nyckelord"]
+        new_dict[row["Fotonummer"]]["Beskrivning"] = row["Beskrivning"]
+        new_dict[row["Fotonummer"]]["Land, foto"] = row["Land, foto"]
+        new_dict[row["Fotonummer"]]["Region, foto"] = row["Region, foto"]
+        new_dict[row["Fotonummer"]]["Ort, foto"] = row["Ort, foto"]
+        new_dict[row["Fotonummer"]]["Geograf namn, alternativ"] = row["Geograf namn, alternativ"]
+        new_dict[row["Fotonummer"]]["Fotodatum"] = row["Fotodatum"]
+        new_dict[row["Fotonummer"]]["Personnamn / fotograf"] = row["Personnamn / fotograf"]
+        new_dict[row["Fotonummer"]]["Personnamn / avbildad"] = row["Personnamn / avbildad"]
+        new_dict[row["Fotonummer"]]["Sökord"] = row["Sökord"]
+        new_dict[row["Fotonummer"]]["Händelse / var närvarande vid"] = row["Händelse / var närvarande vid"]
+        new_dict[row["Fotonummer"]]["Länk"] = row["Länk"]
 
     return new_dict
 
