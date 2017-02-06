@@ -24,9 +24,17 @@ cypern_converters = {"Fotonummer": strip, "Postnr": strip, "Nyckelord": strip, "
                      "Fotodatum": strip, "Personnamn / fotograf": strip, "Personnamn / avbildad": strip, "Sökord": strip,
                      "Händelse / var närvarande vid": strip, "Länk": strip}
 
+def populate_new_dict_with_metadata(metadata, new_dict):
+    for fotonr in metadata.Fotonummer:
+        new_dict[fotonr] = {}
+
+    for index, row in metdata.iterrows():
+        pass #TODO: populate dict with metadata
+
+    return new_dict
 
 def check_image_dir(image_dir):
-    """scans files and maps to json-file names."""
+    """Ensures that images are all in one directory and has extension .tif"""
 
     for root, dirs, files in os.walk(image_dir):
         if len(dirs) > 0:
@@ -42,12 +50,23 @@ def check_image_dir(image_dir):
     print("Succesfully finished checking that image files looks like expected.")
 
 def add_commons_filenames_to_dict(metadata, new_dict):
-    pass
+    """Creates commons filename according to https://phabricator.wikimedia.org/T156612 and ouputs to new_dict"""
 
+    for index, row in metadata.iterrows():
+        commons_name = ""
+        commons_name += row["Beskrivning"]
+        commons_name += "_-_SMVK-MM-Cypern_-_"
+        commons_name += row["Fotonummer"]
+        commons_name += ".tif"
+
+        new_dict[row["Fotonummer"]]["commons_fname"] = commons_name
+
+        print("Fotonummer: {} - Commons name: {}".format(metadata["Fotonummer"], commons_name))
+        return new_dict
 
 def add_smvk_mm_link_to_dict(metadata, new_dict):
 
-    # TODO: Add SMVK-MM-Link, see https://sv.wikipedia.org/wiki/Mall:SMVK-MM-l%C3%A4nk
+    # TODO: Add SMVK-MM-Link, see https://sv.wikipedia.org/wiki/Mall:SMVK-MM-l%C3%A4nk [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/5]
     for index, row in metadata.iterrows():
         url = row["Länk"]
         url_str = url.to_string()
@@ -74,8 +93,11 @@ def main(args):
 
         check_image_dir(args.image_dir)
 
-        #dict_with_commons_filenames = add_commons_filenames_to_dict(metadata, new_dict)
+        populated_dict = populate_new_dict_with_metadata(metadata, new_dict)
+        print("populated_dict: {}".format(populated_dict))
 
+        #dict_with_commons_filenames = add_commons_filenames_to_dict(metadata, new_dict)
+        #print(dict_with_commons_filenames)
         #dict_with_smvk_mm_link = add_smvk_mm_link_to_dict(metadata, dict_with_commons_filenames)
 
         #create_linked_filenamesmapping_wikitable_file(dict_with_smvk_mm_link)
