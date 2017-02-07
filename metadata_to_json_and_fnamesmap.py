@@ -11,6 +11,7 @@ import pandas as pd
 import argparse
 import json
 import os
+import datetime
 
 def strip(text):
     try:
@@ -50,7 +51,6 @@ def populate_new_dict_with_metadata(metadata, new_dict):
     metadata.fillna("", inplace=True)
 
     for index, row in metadata.iterrows():
-        # TODO: Ensure no datetimes sneek in here!
         new_dict[row["Fotonummer"]]["Postnummer"] = row["Postnr."]
         new_dict[row["Fotonummer"]]["Nyckelord"] = row["Nyckelord"]
         new_dict[row["Fotonummer"]]["Beskrivning"] = row["Beskrivning"]
@@ -128,10 +128,17 @@ def save_metadata_json_blob(metadata_dict, json_out):
     :output fileobjet "./SMVK-Cypern_2017-01_metadata.json"
     """
     outfile = open(json_out,"w")
-    outfile.write(json.dumps(metadata_dict, ensure_ascii=False, indent=4))
+    outfile.write(json.dumps(metadata_dict, ensure_ascii=False, indent=4, cls=datetimeEncoder))
     outfile.close()
 
     print("Successfully wrote file {}".format(json_out))
+
+class datetimeEncoder(json.JSONEncoder):
+     def default(self, obj):
+         if isinstance(obj, datetime.datetime):
+             return obj.isoformat()
+         # Let the base class default method raise the TypeError
+         return json.JSONEncoder.default(self, obj)
 
 def main(args):
     """Read infile and output json-file and filenames mapping file."""
