@@ -12,6 +12,7 @@ import argparse
 import json
 import os
 import datetime
+import batchupload
 
 def strip(text):
     try:
@@ -72,7 +73,7 @@ def add_commons_filenames_to_dict(metadata, populated_dict):
     """Creates commons filename according to https://phabricator.wikimedia.org/T156612 and ouputs to new_dict
     :type populated_dict: dictionary
     """
-
+    # TODO: add BatchUploadTools name check before output
     for index, row in metadata.iterrows():
         commons_name = ""
         commons_name += row["Beskrivning"]
@@ -139,6 +140,7 @@ class datetimeEncoder(json.JSONEncoder):
              return obj.isoformat()
          # Let the base class default method raise the TypeError
          return json.JSONEncoder.default(self, obj)
+
 
 def main(args):
     """Read infile and output json-file and filenames mapping file."""
