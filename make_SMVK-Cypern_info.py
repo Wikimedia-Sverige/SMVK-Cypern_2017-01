@@ -68,19 +68,6 @@ class SMMInfo(MakeBaseInfo):
 
         self.data = d
 
-    def add_to_k_nav_list(self, uuid, namn):
-        """
-        Add an uuid to self.k_nav_list
-        """
-        # Convert url to uuid
-        if uuid.startswith(u'http://kulturnav.org'):
-            uuid = uuid.split('/')[-1]
-        if uuid:
-            if uuid in self.k_nav_list.keys():
-                if namn not in self.k_nav_list[uuid]['namn']:
-                    self.k_nav_list[uuid]['namn'].append(namn)
-            else:
-                self.k_nav_list[uuid] = {'namn': [namn, ]}
 
     def load_mappings(self, update=True):
         """
