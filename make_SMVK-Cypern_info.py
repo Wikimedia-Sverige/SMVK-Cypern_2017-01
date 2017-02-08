@@ -132,36 +132,6 @@ class SMMInfo(MakeBaseInfo):
         elif item.typ == u'Föremål':
             return self.make_artwork_info(item)
 
-    def make_foto_info(self, item):
-        """
-        given an item of typ=Foto output the filled out template
-        """
-        descr = u'{{Photograph\n'
-        descr += u' |photographer         = %s\n' % self.get_creator(
-            item.namn_fotograf)
-        descr += u' |title                = \n'
-        descr += u' |description          = %s\n' % item.get_description()
-        descr += u' |original description = %s\n' % (
-            item.get_original_description(), )
-        descr += u' |depicted people      = %s\n' % '/'.join(
-            self.get_depicted_object(item, typ='person'))
-        descr += u' |depicted place       = %s\n' % (
-            item.get_depicted_place(self.mappings), )
-        if item.avbildat_fartyg:
-            linked_objects = self.get_depicted_object(item, typ='ship')
-            descr += SMMInfo.get_depicted_ship_field(linked_objects)
-        descr += u' |date                 = %s\n' % (
-            helpers.std_date_range(item.date_foto), )
-        descr += u' |medium               = %s\n' % (
-            item.get_materials(self.mappings), )
-        descr += u' |institution          = %s\n' % item.get_institution()
-        descr += u' |accession number     = %s\n' % item.get_id_link()
-        descr += u' |source               = %s\n' % item.get_source()
-        descr += u' |permission           = {{SMM cooperation project}}\n'
-        descr += u'%s\n' % item.get_license()
-        descr += u' |other_versions       = \n'
-        descr += u'}}'
-        return descr
 
     def make_artwork_info(self, item):
         """
