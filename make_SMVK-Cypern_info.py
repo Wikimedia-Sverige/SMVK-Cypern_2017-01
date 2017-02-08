@@ -133,50 +133,6 @@ class SMMInfo(MakeBaseInfo):
             return self.make_artwork_info(item)
 
 
-    def make_artwork_info(self, item):
-        """
-        given an item of typ=Föremål output the filled out template
-        """
-        descr = u'{{Artwork\n'
-        descr += u' |artist               = '
-        if item.namn_konstnar:
-            descr += self.get_creator(item.namn_konstnar)
-        elif item.namn_konstruktor:
-            descr += self.get_creator(item.namn_konstruktor)
-        descr += u'\n'
-        if item.namn_tillverkare:
-            descr += SMMInfo.get_manufacturer_field(
-                self.get_creator(item.namn_tillverkare))
-        descr += u' |title                = \n'
-        descr += u' |object type          = %s\n' % item.benamning
-        descr += u' |description          = %s' % item.get_description()
-        if item.avbildad_person:
-            linked_objects = self.get_depicted_object(item, typ='person')
-            descr += u'<br>\n{{depicted person|style=plain text|%s}}' % \
-                     '|'.join(linked_objects)
-        if item.avbildat_fartyg:
-            linked_objects = self.get_depicted_object(item, typ='ship')
-            descr += u'<br>\n{{depicted ship|style=plain text|%s}}' % \
-                     '|'.join(linked_objects)
-        if item.avbildad_ort:
-            descr += u'<br>\n{{depicted place|%s}}' % (
-                item.get_depicted_place(self.mappings), )
-        descr += u'\n'
-        descr += SMMInfo.get_original_caption_field(
-            item.get_original_description())
-        descr += u' |date                 = %s\n' % helpers.std_date_range(
-            item.date_produktion)
-        descr += u' |medium               = %s\n' % (
-            item.get_materials(self.mappings), )
-        descr += u' |institution          = %s\n' % item.get_institution()
-        descr += u' |accession number     = %s\n' % item.get_id_link()
-        descr += u' |source               = %s\n' % item.get_source()
-        descr += u' |permission           = {{SMM cooperation project}}\n'
-        descr += u'%s\n' % item.get_license()
-        descr += u' |other_versions       = \n'
-        descr += u'}}'
-        return descr
-
     @staticmethod
     def get_depicted_ship_field(value):
         """Add the template field for depicted ships."""
