@@ -23,7 +23,7 @@ def generate_infobox_template(item):
 
     Return: item infobox as string
     """
-    # TODO: write infobox logic based on https://phabricator.wikimedia.org/T156612
+    # TODO: write infobox logic based on https://phabricator.wikimedia.org/T156612 [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/11]
     pass
 
 
@@ -31,7 +31,7 @@ def generate_content_cats(item):
     """Takes one item from metadata dictionary and constructs the meta-categories.
 
         Return: meta-categories as string"""
-    # TODO: write logic for content-categories
+    # TODO: write logic for content-categories [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/10]
     pass
 
 def generate_meta_cats(item):
@@ -39,6 +39,8 @@ def generate_meta_cats(item):
 
     Return: meta-categories as string"""
     # TODO: write logic for meta-categories e.g. maintanence categories
+    # [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/12]
+    # see https://phabricator.wikimedia.org/T156612#3008806 on lacking description
     pass
 
 
