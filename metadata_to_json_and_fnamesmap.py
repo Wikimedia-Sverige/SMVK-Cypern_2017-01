@@ -74,22 +74,17 @@ def add_commons_filenames_to_dict(metadata, populated_dict):
     """Creates commons filename according to https://phabricator.wikimedia.org/T156612 and ouputs to new_dict
     :type populated_dict: dictionary
     """
-    # TODO: add BatchUploadTools name check before output [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/7]
     for index, row in metadata.iterrows():
-        commons_name = ""
-        commons_name += row["Beskrivning"]
-        commons_name += "_-_SMVK-MM-Cypern_-_"
-        commons_name += row["Fotonummer"]
-        commons_name += ".tif"
-
-        print("Fname without BatchUploadTools: {}".format(commons_name))
-
-        cleaned_fname = helpers.format_filename(row["Beskrivning"], "SMVK-MM-Cypern", row["Fotonummer"])
-        print("Fname using BatchUploadTools: {}".format(cleaned_fname))
+        if pd.notnull(row.Beskrivning):
+            cleaned_fname = helpers.format_filename(row["Beskrivning"], "SMVK-MM-Cypern", row["Fotonummer"])
+            #print("Fname using BatchUploadTools: {}".format(cleaned_fname))
+        else:
+            # TODO: fix alternative description according to https://phabricator.wikimedia.org/T156612#3008806
+            beskr = "Svenska Cypernexpeditionen 1927-1931"
+            cleaned_fname = helpers.format_filename(beskr, "SMVK-MM-Cypern", row["Fotonummer"])
 
 
-
-        populated_dict[row["Fotonummer"]]["commons_fname"] = commons_name
+        populated_dict[row["Fotonummer"]]["commons_fname"] = cleaned_fname + ".tif"
 
     return populated_dict
 
@@ -101,7 +96,6 @@ def add_smvk_mm_link_to_dict(metadata, fname_dict):
 
         url = row["Länk"]
         obj_id = url.rpartition("/")[2]
-
         smvk_link += obj_id
 
         smvk_link += "|"
@@ -114,7 +108,6 @@ def add_smvk_mm_link_to_dict(metadata, fname_dict):
         fname_dict[row["Fotonummer"]]["smvk_link"] = smvk_link
 
     return fname_dict
-
 
 def create_linked_filenamesmapping_file(metadata_dict):
     """Inputs dictionary and outputs CSV-file with old vs new filenames.
