@@ -14,7 +14,33 @@ import json
 
 def load_json_metadata(infile):
     """Load metadata json blob created with ´metadata_to_json_and_fnamesmap.py´"""
-    metadata = json.load(open("SMVK-Cypern_2017-01_metadata.json"))
+    metadata = json.load(open(infile))
+
+    return metadata
+
+def generate_infobox_template(item):
+    """Takes one item from metadata dictionary and constructs the infobox template.
+
+    Return: item infobox as string
+    """
+    # TODO: write infobox logic based on https://phabricator.wikimedia.org/T156612
+    pass
+
+
+def generate_content_cats(item):
+    """Takes one item from metadata dictionary and constructs the meta-categories.
+
+        Return: meta-categories as string"""
+    # TODO: write logic for content-categories
+    pass
+
+def generate_meta_cats(item):
+    """Takes one item from metadata dictionary and constructs the meta-categories.
+
+    Return: meta-categories as string"""
+    # TODO: write logic for meta-categories e.g. maintanence categories
+    pass
+
 
 def main():
     """Illustrate function-level docstring.
@@ -26,6 +52,29 @@ def main():
     All subsequent paragraphs in a docstring are indented exactly the same as
     the summary line. The same applies to the closing quotation marks.
     """
+    metadata_json = "SMVK-Cypern_2017-01_metadata.json"
+    outpath = "./infofiles"
+
+    metadata = load_json_metadata(metadata_json)
+    for fotonr in metadata:
+        outfile = open(outpath + fotonr + ".info", "w")
+
+        infotext = ""
+        infobox = generate_infobox_template(metadata[fotonr])
+        infotext += infobox + "\n"
+
+        content_cats = generate_content_cats(metadata[fotonr])
+        infotext += content_cats + "\n"
+
+        meta_cats = generate_meta_cats(metadata[fotonr])
+        infotext += meta_cats
+
+        print(infotext + "\n--------------\n")
+        #outfile.write(infotext)
+        outfile.close()
+
+
+
 
 
 if __name__ == '__main__':
