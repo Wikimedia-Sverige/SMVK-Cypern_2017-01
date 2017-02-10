@@ -34,7 +34,7 @@ class ImageFile(object, original_fname, original_path):
 
     def create_commons_filename(self):
         """Does what is says """
-        # TODO: use line 88 in https://github.com/lokal-profil/BatchUploadTools/blob/master/batchupload/helpers.py
+        # TODO: use line 88 in https://github.com/lokal-profil/BatchUploadTools/blob/master/batchupload/helpers.py [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/8]
         # For Commons conventions see bit.ly/commons_fname_conventions
 
 
