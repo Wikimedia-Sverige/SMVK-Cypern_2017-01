@@ -10,6 +10,7 @@ Outputs <Fotonummer>.info files in a subdirectory ./infofiles/
 
 import os
 import json
+import re
 
 
 def load_json_metadata(infile):
@@ -24,8 +25,57 @@ def generate_infobox_template(item):
     Return: item infobox as string
     """
     # TODO: write infobox logic based on https://phabricator.wikimedia.org/T156612 [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/11]
-    pass
+    infobox = ""
+    infobox += "{{Photograph \n"
 
+    # 22 characters from start of string to '='
+    if not item["Personnamn / fotograf"] == "":
+        infobox += "| photographer       =  {{Creator:John Lindros}}\n"
+    else:
+        infobox += "| photographer       = \n"
+
+    infobox += "| title               =\n"
+
+    infobox += "| description        = {{sv| "
+
+    if not item["Beskrivning"] == "":
+        print("item['Beskrivning']: {}".format(item["Beskrivning"]))
+        cleaned_beskrivning = re.sub(" Svenska Cypernexpeditionen\.?", "", item["Beskrivning"])
+        infobox += cleaned_beskrivning
+        if not cleaned_beskrivning.endswith("."):
+            infobox += "."
+    infobox += " Svenska Cypernexpeditionen 1927-1931."
+    if not item["Nyckelord"] == "" and not item["Nyckelord"] == "Svenska Cypernexpeditionen":
+        infobox += "<br /> ''Nyckelord:''\n" + item["Nyckelord"]
+    infobox += "}}\n"
+    infobox += "{{en|The Swedish Cyprus expedition 1927-1931}}"
+
+#  |description        = {{{sv| <Beskrivning>. Svenska Cypernexpeditionen 1927-1931. <br /> ''Nyckelord:'' <nyckelord>}} // 6 cases with only the latter
+#                                 {{en|The Swedish Cyprus expedition 1927-1931}}
+#  |depicted people    = <Personnamn, avbildad>
+#  |depicted place     = {{city|<Places mapping>}}
+#  |date               = <Fotodatum>
+#  |medium             =
+#  |dimensions         =
+#  |institution        = {{Institution:Statens museer för världskultur}}
+#  |department         = [[:d:Q1331646|Medelhavsmuseet]]
+#  |references         =
+#  |object history     =
+#  |exhibition history =
+#  |credit line        =
+#  |inscriptions       =
+#  |notes              =
+#  |accession number   = {{SMVK-MM-link|<Länk[last digits]>|<Fotonummer>}}
+#  |source             = The original image file was recieved from SMVK with the following filename:  <br />
+# '''<Fotonummer>.tif''' // Double check this!
+# {{SMVK cooperation project|COH}}
+#  |permission         = {{cc-zero}}
+#  |other_versions     =
+# }}
+#     """
+    print(infobox)
+
+    return infobox
 
 def generate_content_cats(item):
     """Takes one item from metadata dictionary and constructs the meta-categories.
@@ -55,28 +105,24 @@ def main():
     the summary line. The same applies to the closing quotation marks.
     """
     metadata_json = "SMVK-Cypern_2017-01_metadata.json"
-    outpath = "./infofiles"
+    outpath = "./infofiles/"
 
     metadata = load_json_metadata(metadata_json)
     for fotonr in metadata:
         outfile = open(outpath + fotonr + ".info", "w")
-
-        infotext = ""
+        full_infotext = ""
         infobox = generate_infobox_template(metadata[fotonr])
-        infotext += infobox + "\n"
+        full_infotext += infobox + "\n"
 
-        content_cats = generate_content_cats(metadata[fotonr])
-        infotext += content_cats + "\n"
+        #content_cats = generate_content_cats(metadata[fotonr])
+        #infotext += content_cats + "\n"
 
-        meta_cats = generate_meta_cats(metadata[fotonr])
-        infotext += meta_cats
+        #meta_cats = generate_meta_cats(metadata[fotonr])
+        #infotext += meta_cats
 
-        print(infotext + "\n--------------\n")
+        #print(infotext + "\n--------------\n")
         #outfile.write(infotext)
         outfile.close()
-
-
-
 
 
 if __name__ == '__main__':
