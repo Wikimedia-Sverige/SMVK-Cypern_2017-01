@@ -13,6 +13,7 @@ import json
 import re
 
 
+
 def load_json_metadata(infile):
     """Load metadata json blob created with ´metadata_to_json_and_fnamesmap.py´"""
     metadata = json.load(open(infile))
@@ -39,7 +40,7 @@ def generate_infobox_template(item):
     infobox += "| description        = {{sv| "
 
     if not item["Beskrivning"] == "":
-        print("item['Beskrivning']: {}".format(item["Beskrivning"]))
+        #print("item['Beskrivning']: {}".format(item["Beskrivning"]))
         cleaned_beskrivning = re.sub(" Svenska Cypernexpeditionen\.?", "", item["Beskrivning"])
         infobox += cleaned_beskrivning
         if not cleaned_beskrivning.endswith("."):
@@ -50,9 +51,12 @@ def generate_infobox_template(item):
     infobox += "}}\n"
     infobox += "{{en|The Swedish Cyprus expedition 1927-1931}}"
 
-#  |description        = {{{sv| <Beskrivning>. Svenska Cypernexpeditionen 1927-1931. <br /> ''Nyckelord:'' <nyckelord>}} // 6 cases with only the latter
-#                                 {{en|The Swedish Cyprus expedition 1927-1931}}
-#  |depicted people    = <Personnamn, avbildad>
+    if not item["Personnamn / avbildad"] == "":
+        infobox += "| depicted people    = " + item["Personnamn / avbildad"]
+    else:
+        infobox += "| depicted people    = "
+
+
 #  |depicted place     = {{city|<Places mapping>}}
 #  |date               = <Fotodatum>
 #  |medium             =
@@ -88,7 +92,7 @@ def generate_meta_cats(item):
     """Takes one item from metadata dictionary and constructs the meta-categories.
 
     Return: meta-categories as string"""
-    # TODO: write logic for meta-categories e.g. maintanence categories
+    # TODO: write logic for meta-categories e.g. maintanence categories [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/13]
     # [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/12]
     # see https://phabricator.wikimedia.org/T156612#3008806 on lacking description
     pass
