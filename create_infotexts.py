@@ -11,8 +11,15 @@ Outputs <Fotonummer>.info files in a subdirectory ./infofiles/
 import os
 import json
 import re
+import pandas as pd
 
+def load_places_mapping():
+    """Reads wikitable html and returns a dictionary"""
+    kw_maps_url = "https://commons.wikimedia.org/wiki/Commons:Medelhavsmuseet/batchUploads/Cypern_places"
+    places = pd.read_html(kw_maps_url, attrs={"class": "wikitable sortable"}, header=0)
 
+    places_df = places[0] # read_html returns a list of found tables, each of which as a dataframe
+    return places_df.to_dict()
 
 def load_json_metadata(infile):
     """Load metadata json blob created with ´metadata_to_json_and_fnamesmap.py´"""
@@ -38,7 +45,6 @@ def generate_infobox_template(item):
     infobox += "| title               =\n"
 
     infobox += "| description        = {{sv| "
-
     if not item["Beskrivning"] == "":
         #print("item['Beskrivning']: {}".format(item["Beskrivning"]))
         cleaned_beskrivning = re.sub(" Svenska Cypernexpeditionen\.?", "", item["Beskrivning"])
@@ -77,7 +83,7 @@ def generate_infobox_template(item):
 #  |other_versions     =
 # }}
 #     """
-    print(infobox)
+    #print(infobox)
 
     return infobox
 
@@ -110,6 +116,9 @@ def main():
     """
     metadata_json = "SMVK-Cypern_2017-01_metadata.json"
     outpath = "./infofiles/"
+
+    places = load_places_mapping()
+    print(places)
 
     metadata = load_json_metadata(metadata_json)
     for fotonr in metadata:
