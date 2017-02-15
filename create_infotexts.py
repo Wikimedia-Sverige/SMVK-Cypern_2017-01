@@ -73,28 +73,35 @@ def generate_infobox_template(item, places):
 
     def depicted_people_mapping(name_string_or_list):
         people_mapping = {
-            "John Lindros":"",
-            "Lazaros Kristos":"",
-            "Alfred Westholm":"",
-            "Erik Sjökvist":"",
-            "Einar Gjerstad":"",
-            "Lazaros Giorkos":"",
-            "Stefan Gjerstad":"",
-            "Vivi Gjerstad":"",
-            "Gudrun Otterman":""
+            "John Lindros":"[[Category:John Lindros|John Lindros]]", # [[:d:Q5957823|John Lindros]]
+            "Lazaros Kristos":"Lazaros Kristos",
+            "Alfred Westholm":"[[Category:Alfred Westholm|Alfred Westholm]]", # [[:d:Q6238028|Alfred Westholm]]
+            "Erik Sjökvist":"[[Category:Erik Sjöqvist|Erik Sjöqvist]]", # [[:d:Q5388837|Erik Sjöqvist]] OBS! "Q" inte "K"
+            "Erik Sjöqvist":"[[Category:Erik Sjöqvist|Erik Sjöqvist]]", # [[:d:Q5388837|Erik Sjöqvist]]
+            "Einar Gjerstad":"[[Category:Einar Gjerstad|Einar Gjerstad]]", # [[:d:Q481299|Einar Gjerstad]]
+            "Lazaros Giorkos":"Lazaros Giorkos",
+            "Stefan Gjerstad":"Stefan Gjerstad",
+            "Vivi Gjerstad":"Vivi Gjerstad",
+            "Gudrun Otterman":"Gudrun Otterman",
+            "Martin Gjerstad":"[[Category:Martin Gjerstad|Martin Gjerstad]]", # [[d:Q16632979|Martin Gjerstad]]
+            "Knut Thyberg":"[[Category:Knut Thyberg|Knut Thyberg]]", # [[:d:Q16633505|Knut Thyberg]]
+            "Rosa Lindros":"Rosa Lindros",
+            "Ernst Kjellberg":"[[Category:Ernst Kjellberg|Ernst Kjellberg]]", # [[:d:Q5911946|Ernst Kjellberg
+            "Bror Millberg":"Bror Millberg"
         }
         if isinstance(name_string_or_list, list):
             out_string = ""
             for name in name_string_or_list:
                 out_string += people_mapping[name] + "/"
-            out_string.rstrip("/")
-            return out_string
+            return out_string.rstrip("/")
         else: # pre-supposes isinstance(name_string_or_list, basetring) == True
             return people_mapping[name_string_or_list]
 
     if not item["Personnamn / avbildad"] == "":
         if len(item["Personnamn / avbildad"].split(", ")) <= 2:
-            infobox += "| depicted people    = " + item["Personnamn / avbildad"]
+            flipped_name = helpers.flip_name(item["Personnamn / avbildad"])
+            mapped_name = depicted_people_mapping(flipped_name)
+            infobox += "| depicted people    = " + mapped_name
         else:
             #print("Bökig | depicted person: {}".format(item["Personnamn / avbildad"]))
             words = item["Personnamn / avbildad"].split(", ")
@@ -102,7 +109,9 @@ def generate_infobox_template(item, places):
                 span = 2
                 list_of_names = [", ".join(words[i:i + span]) for i in range(0, len(words), span)]
                 flipped_names_list = helpers.flip_names(list_of_names)
-                print(flipped_names_list)
+                #print(flipped_names_list)
+                mapped_people = depicted_people_mapping(flipped_names_list)
+                infobox += "| depicted people    = " + mapped_people
             else:
                 print("Error: not even number of names in depicted people: {}".format(item["Personnamn / avbildad"]))
     else:
@@ -144,8 +153,8 @@ def generate_infobox_template(item, places):
 #  |other_versions     =
 # }}
 #     """
-    #print()
-    #print(infobox)
+    print()
+    print(infobox)
 
     return infobox
 
