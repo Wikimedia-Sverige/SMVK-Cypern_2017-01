@@ -68,21 +68,30 @@ def generate_infobox_template(item, places):
         infobox += "<br /> ''Nyckelord:''\n" + item["Nyckelord"]
     infobox += "}}\n"
     infobox += "{{en|The Swedish Cyprus expedition 1927-1931}}"
+    infobox += "\n"
 
     if not item["Personnamn / avbildad"] == "":
         infobox += "| depicted people    = " + item["Personnamn / avbildad"]
     else:
         infobox += "| depicted people    = "
+    infobox += "\n"
 
     infobox += "| depicted place     = "
     if item["Ort, foto"] in places:
-        if places[item["Ort, foto"]]["wikidata"] != "-":
-            print("item['Ort, foto']: {} places: {}".format(item["Ort, foto"], places[item["Ort, foto"]]["wikidata"]))
-            infobox += "{{city|1=" + places[item["Ort, foto"]]["wikidata"] + "|link=wikidata}}"
+        if not places[item["Ort, foto"]]["wikidata"] == "-":
+            #print("item['Ort, foto']: {} places: {}".format(item["Ort, foto"], places[item["Ort, foto"]]["wikidata"]))
+            infobox += "{{city|1=" + places[item["Ort, foto"]]["wikidata"][2:] + "|link=wikidata}}"
         else:
-            print("commons hit")
+            #print("item['Ort, foto']: {} places: {}".format(item["Ort, foto"], places[item["Ort, foto"]]["wikidata"]))
+            infobox += "{{city|1=" + places[item["Ort, foto"]]["commons"] + "|link=commons}}"
+    infobox += "\n"
 
-#  |depicted place     = {{city|<Places mapping>}}
+    infobox += "| date               = "
+    if not item["Fotodatum"] == "":
+        infobox += str(item["Fotodatum"])
+    infobox += "\n"
+
+
 #  |date               = <Fotodatum>
 #  |medium             =
 #  |dimensions         =
@@ -102,7 +111,8 @@ def generate_infobox_template(item, places):
 #  |other_versions     =
 # }}
 #     """
-    #print(infobox)
+    print()
+    print(infobox)
 
     return infobox
 
@@ -137,7 +147,7 @@ def main():
     outpath = "./infofiles/"
 
     places = load_places_mapping()
-    print(places)
+    #print(places)
 
     metadata = load_json_metadata(metadata_json)
     for fotonr in metadata:
