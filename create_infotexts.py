@@ -74,7 +74,13 @@ def generate_infobox_template(item, places):
     else:
         infobox += "| depicted people    = "
 
-
+    infobox += "| depicted place     = "
+    if item["Ort, foto"] in places:
+        if places[item["Ort, foto"]]["wikidata"] != "-":
+            print("item['Ort, foto']: {} places: {}".format(item["Ort, foto"], places[item["Ort, foto"]]["wikidata"]))
+            infobox += "{{city|1=" + places[item["Ort, foto"]]["wikidata"] + "|link=wikidata}}"
+        else:
+            print("commons hit")
 
 #  |depicted place     = {{city|<Places mapping>}}
 #  |date               = <Fotodatum>
