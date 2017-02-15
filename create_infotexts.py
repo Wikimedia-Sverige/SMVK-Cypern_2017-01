@@ -12,6 +12,7 @@ import os
 import json
 import re
 import pandas as pd
+import batchupload.helpers as helpers
 
 def load_places_mapping():
     """Reads wikitable html and returns a dictionary"""
@@ -70,8 +71,40 @@ def generate_infobox_template(item, places):
     infobox += "{{en|The Swedish Cyprus expedition 1927-1931}}"
     infobox += "\n"
 
+    def depicted_people_mapping(name_string_or_list):
+        people_mapping = {
+            "John Lindros":"",
+            "Lazaros Kristos":"",
+            "Alfred Westholm":"",
+            "Erik Sjökvist":"",
+            "Einar Gjerstad":"",
+            "Lazaros Giorkos":"",
+            "Stefan Gjerstad":"",
+            "Vivi Gjerstad":"",
+            "Gudrun Otterman":""
+        }
+        if isinstance(name_string_or_list, list):
+            out_string = ""
+            for name in name_string_or_list:
+                out_string += people_mapping[name] + "/"
+            out_string.rstrip("/")
+            return out_string
+        else: # pre-supposes isinstance(name_string_or_list, basetring) == True
+            return people_mapping[name_string_or_list]
+
     if not item["Personnamn / avbildad"] == "":
-        infobox += "| depicted people    = " + item["Personnamn / avbildad"]
+        if len(item["Personnamn / avbildad"].split(", ")) <= 2:
+            infobox += "| depicted people    = " + item["Personnamn / avbildad"]
+        else:
+            #print("Bökig | depicted person: {}".format(item["Personnamn / avbildad"]))
+            words = item["Personnamn / avbildad"].split(", ")
+            if len(words) % 2 == 0:
+                span = 2
+                list_of_names = [", ".join(words[i:i + span]) for i in range(0, len(words), span)]
+                flipped_names_list = helpers.flip_names(list_of_names)
+                print(flipped_names_list)
+            else:
+                print("Error: not even number of names in depicted people: {}".format(item["Personnamn / avbildad"]))
     else:
         infobox += "| depicted people    = "
     infobox += "\n"
@@ -111,8 +144,8 @@ def generate_infobox_template(item, places):
 #  |other_versions     =
 # }}
 #     """
-    print()
-    print(infobox)
+    #print()
+    #print(infobox)
 
     return infobox
 
