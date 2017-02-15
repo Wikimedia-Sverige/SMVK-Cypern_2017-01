@@ -19,15 +19,27 @@ def load_places_mapping():
     places = pd.read_html(kw_maps_url, attrs={"class": "wikitable sortable"}, header=0)
 
     places_df = places[0] # read_html returns a list of found tables, each of which as a dataframe
-    return places_df.to_dict()
+    places_df = places_df.set_index("Nyckelord")
+    places_df.columns = ["freq","commons","wikidata"]
+
+    places_dict = {}
+
+    for index, row in places_df.iterrows():
+        places_dict[index] = {}
+        places_dict[index]["commons"] = row["commons"]
+        places_dict[index]["wikidata"] = row["wikidata"]
+
+    return places_dict
 
 def load_json_metadata(infile):
     """Load metadata json blob created with ´metadata_to_json_and_fnamesmap.py´"""
     metadata = json.load(open(infile))
 
+    #print("metadata item C01427: {}".format(metadata["C01427"]))
+
     return metadata
 
-def generate_infobox_template(item):
+def generate_infobox_template(item, places):
     """Takes one item from metadata dictionary and constructs the infobox template.
 
     Return: item infobox as string
@@ -61,6 +73,7 @@ def generate_infobox_template(item):
         infobox += "| depicted people    = " + item["Personnamn / avbildad"]
     else:
         infobox += "| depicted people    = "
+
 
 
 #  |depicted place     = {{city|<Places mapping>}}
@@ -124,7 +137,7 @@ def main():
     for fotonr in metadata:
         outfile = open(outpath + fotonr + ".info", "w")
         full_infotext = ""
-        infobox = generate_infobox_template(metadata[fotonr])
+        infobox = generate_infobox_template(metadata[fotonr], places)
         full_infotext += infobox + "\n"
 
         #content_cats = generate_content_cats(metadata[fotonr])
