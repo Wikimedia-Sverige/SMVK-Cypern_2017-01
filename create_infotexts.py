@@ -14,6 +14,62 @@ import re
 import pandas as pd
 import batchupload.helpers as helpers
 
+people_mapping_string = """{
+	"John Lindros": {
+		"commons": "[[Category:John Lindros|John Lindros]]",
+		"wikidata": "[[:d:Q5957823|John Lindros]]"
+	},
+	"Lazaros Kristos": {
+		"commons": "Lazaros Kristos"
+	},
+	"Alfred Westholm": {
+		"commons": "[[Category:Alfred Westholm|Alfred Westholm]]",
+		"wikidata": "[[:d:Q6238028|Alfred Westholm]]"
+	},
+	"Erik Sjökvist": {
+		"commons": "[[Category:Erik Sjöqvist|Erik Sjöqvist]]",
+		"wikidata": "[[:d:Q5388837|Erik Sjöqvist]]"
+	},
+	"Erik Sjöqvist": {
+		"commons": "[[Category:Erik Sjöqvist|Erik Sjöqvist]]",
+		"wikidata": "[[:d:Q5388837|Erik Sjöqvist]]"
+	},
+	"Einar Gjerstad": {
+		"commons": "[[Category:Einar Gjerstad|Einar Gjerstad]]",
+		"wikidata": "[[:d:Q481299|Einar Gjerstad]]"
+	},
+	"Lazaros Giorkos": {
+		"name": "Lazaros Giorkos"
+	},
+	"Stefan Gjerstad": {
+		"name": "Stefan Gjerstad"
+	},
+	"Vivi Gjerstad": {
+		"name": "Vivi Gjerstad"
+	},
+	"Gudrun Otterman": {
+		"name":"Gudrun Otterman"
+	},
+	"Martin Gjerstad": {
+		"commons": "[[Category:Martin Gjerstad|Martin Gjerstad]]",
+		"wikidata": "[[d:Q16632979|Martin Gjerstad]]"
+	},
+	"Knut Thyberg": {
+		"commons": "[[Category:Knut Thyberg|Knut Thyberg]]",
+		"wikidata": "[[:d:Q16633505|Knut Thyberg]]"
+	},
+	"Rosa Lindros": {
+		"name":"Rosa Lindros"
+	},
+	"Ernst Kjellberg": {
+		"commons": "[[Category:Ernst Kjellberg|Ernst Kjellberg]]",
+		"wikidata": "[[:d:Q5911946|Ernst Kjellberg]]"
+	},
+	"Bror Millberg": {
+		"commons": "Bror Millberg"
+	}
+}"""
+
 def load_places_mapping():
     """Reads wikitable html and returns a dictionary"""
     kw_maps_url = "https://commons.wikimedia.org/wiki/Commons:Medelhavsmuseet/batchUploads/Cypern_places"
@@ -39,6 +95,9 @@ def load_json_metadata(infile):
     #print("metadata item C01427: {}".format(metadata["C01427"]))
 
     return metadata
+
+def create_people_mapping_wikitable(people_mapping):
+    pass
 
 def generate_infobox_template(item, places):
     """Takes one item from metadata dictionary and constructs the infobox template.
@@ -71,28 +130,14 @@ def generate_infobox_template(item, places):
     infobox += "{{en|The Swedish Cyprus expedition 1927-1931}}"
     infobox += "\n"
 
-    def depicted_people_mapping(name_string_or_list):
-        people_mapping = {
-            "John Lindros":"[[Category:John Lindros|John Lindros]]", # [[:d:Q5957823|John Lindros]]
-            "Lazaros Kristos":"Lazaros Kristos",
-            "Alfred Westholm":"[[Category:Alfred Westholm|Alfred Westholm]]", # [[:d:Q6238028|Alfred Westholm]]
-            "Erik Sjökvist":"[[Category:Erik Sjöqvist|Erik Sjöqvist]]", # [[:d:Q5388837|Erik Sjöqvist]] OBS! "Q" inte "K"
-            "Erik Sjöqvist":"[[Category:Erik Sjöqvist|Erik Sjöqvist]]", # [[:d:Q5388837|Erik Sjöqvist]]
-            "Einar Gjerstad":"[[Category:Einar Gjerstad|Einar Gjerstad]]", # [[:d:Q481299|Einar Gjerstad]]
-            "Lazaros Giorkos":"Lazaros Giorkos",
-            "Stefan Gjerstad":"Stefan Gjerstad",
-            "Vivi Gjerstad":"Vivi Gjerstad",
-            "Gudrun Otterman":"Gudrun Otterman",
-            "Martin Gjerstad":"[[Category:Martin Gjerstad|Martin Gjerstad]]", # [[d:Q16632979|Martin Gjerstad]]
-            "Knut Thyberg":"[[Category:Knut Thyberg|Knut Thyberg]]", # [[:d:Q16633505|Knut Thyberg]]
-            "Rosa Lindros":"Rosa Lindros",
-            "Ernst Kjellberg":"[[Category:Ernst Kjellberg|Ernst Kjellberg]]", # [[:d:Q5911946|Ernst Kjellberg
-            "Bror Millberg":"Bror Millberg"
-        }
+    def depicted_people_mapping(people_mapping_string, name_string_or_list):
+
+        people_mapping = json.loads(people_mapping_string)
+
         if isinstance(name_string_or_list, list):
             out_string = ""
             for name in name_string_or_list:
-                out_string += people_mapping[name] + "/"
+                out_string += str(people_mapping[name]) + "/"
             return out_string.rstrip("/")
         else: # pre-supposes isinstance(name_string_or_list, basetring) == True
             return people_mapping[name_string_or_list]
@@ -100,8 +145,8 @@ def generate_infobox_template(item, places):
     if not item["Personnamn / avbildad"] == "":
         if len(item["Personnamn / avbildad"].split(", ")) <= 2:
             flipped_name = helpers.flip_name(item["Personnamn / avbildad"])
-            mapped_name = depicted_people_mapping(flipped_name)
-            infobox += "| depicted people    = " + mapped_name
+            mapped_name = depicted_people_mapping(people_mapping_string, flipped_name)
+            infobox += "| depicted people    = " + str(mapped_name)
         else:
             #print("Bökig | depicted person: {}".format(item["Personnamn / avbildad"]))
             words = item["Personnamn / avbildad"].split(", ")
@@ -110,7 +155,7 @@ def generate_infobox_template(item, places):
                 list_of_names = [", ".join(words[i:i + span]) for i in range(0, len(words), span)]
                 flipped_names_list = helpers.flip_names(list_of_names)
                 #print(flipped_names_list)
-                mapped_people = depicted_people_mapping(flipped_names_list)
+                mapped_people = depicted_people_mapping(people_mapping_string, flipped_names_list)
                 infobox += "| depicted people    = " + mapped_people
             else:
                 print("Error: not even number of names in depicted people: {}".format(item["Personnamn / avbildad"]))
