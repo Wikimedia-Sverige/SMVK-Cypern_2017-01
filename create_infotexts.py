@@ -16,25 +16,30 @@ import batchupload.helpers as helpers
 
 people_mapping_string = """{
 	"John Lindros": {
+	    "name":"John Lindros",
 		"commons": "[[Category:John Lindros|John Lindros]]",
 		"wikidata": "[[:d:Q5957823|John Lindros]]"
 	},
 	"Lazaros Kristos": {
-		"commons": "Lazaros Kristos"
+		"name": "Lazaros Kristos"
 	},
 	"Alfred Westholm": {
+	    "name":"Alfred Westholm",
 		"commons": "[[Category:Alfred Westholm|Alfred Westholm]]",
 		"wikidata": "[[:d:Q6238028|Alfred Westholm]]"
 	},
 	"Erik Sjökvist": {
+	    "name":"Erik Sjöqvist",
 		"commons": "[[Category:Erik Sjöqvist|Erik Sjöqvist]]",
 		"wikidata": "[[:d:Q5388837|Erik Sjöqvist]]"
 	},
 	"Erik Sjöqvist": {
+	    "name":"Erik Sjöqvist",
 		"commons": "[[Category:Erik Sjöqvist|Erik Sjöqvist]]",
 		"wikidata": "[[:d:Q5388837|Erik Sjöqvist]]"
 	},
 	"Einar Gjerstad": {
+	    "name":"Einar Gjerstad",
 		"commons": "[[Category:Einar Gjerstad|Einar Gjerstad]]",
 		"wikidata": "[[:d:Q481299|Einar Gjerstad]]"
 	},
@@ -51,10 +56,12 @@ people_mapping_string = """{
 		"name":"Gudrun Otterman"
 	},
 	"Martin Gjerstad": {
+	    "name":"Martin Gjerstad",
 		"commons": "[[Category:Martin Gjerstad|Martin Gjerstad]]",
 		"wikidata": "[[d:Q16632979|Martin Gjerstad]]"
 	},
 	"Knut Thyberg": {
+	    "name":"Knut Thyberg",
 		"commons": "[[Category:Knut Thyberg|Knut Thyberg]]",
 		"wikidata": "[[:d:Q16633505|Knut Thyberg]]"
 	},
@@ -62,13 +69,16 @@ people_mapping_string = """{
 		"name":"Rosa Lindros"
 	},
 	"Ernst Kjellberg": {
+	    "name":"Ernst Kjellberg",
 		"commons": "[[Category:Ernst Kjellberg|Ernst Kjellberg]]",
 		"wikidata": "[[:d:Q5911946|Ernst Kjellberg]]"
 	},
 	"Bror Millberg": {
-		"commons": "Bror Millberg"
+		"name": "Bror Millberg"
 	}
 }"""
+
+people_mapping = json.loads(people_mapping_string)
 
 def load_places_mapping():
     """Reads wikitable html and returns a dictionary"""
@@ -97,6 +107,7 @@ def load_json_metadata(infile):
     return metadata
 
 def create_people_mapping_wikitable(people_mapping):
+    # TODO: create logic for people mapping wikitable
     pass
 
 def generate_infobox_template(item, places):
@@ -105,6 +116,9 @@ def generate_infobox_template(item, places):
     Return: item infobox as string
     """
     # TODO: write infobox logic based on https://phabricator.wikimedia.org/T156612 [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/11]
+
+    depicted_people_content_category_string = "" # to keep track of and add unused commons categories
+
     infobox = ""
     infobox += "{{Photograph \n"
 
@@ -130,38 +144,64 @@ def generate_infobox_template(item, places):
     infobox += "{{en|The Swedish Cyprus expedition 1927-1931}}"
     infobox += "\n"
 
-    def depicted_people_mapping(people_mapping_string, name_string_or_list):
-
-        people_mapping = json.loads(people_mapping_string)
-
-        if isinstance(name_string_or_list, list):
-            out_string = ""
-            for name in name_string_or_list:
-                out_string += str(people_mapping[name]) + "/"
-            return out_string.rstrip("/")
-        else: # pre-supposes isinstance(name_string_or_list, basetring) == True
-            return people_mapping[name_string_or_list]
-
-    if not item["Personnamn / avbildad"] == "":
-        if len(item["Personnamn / avbildad"].split(", ")) <= 2:
-            flipped_name = helpers.flip_name(item["Personnamn / avbildad"])
-            mapped_name = depicted_people_mapping(people_mapping_string, flipped_name)
-            infobox += "| depicted people    = " + str(mapped_name)
+    def select_best_mapping_for_depicted_person(flipped_name):
+        if "wikidata" in people_mapping[flipped_name].keys():
+            return people_mapping[flipped_name]["wikidata"]
         else:
-            #print("Bökig | depicted person: {}".format(item["Personnamn / avbildad"]))
-            words = item["Personnamn / avbildad"].split(", ")
-            if len(words) % 2 == 0:
-                span = 2
-                list_of_names = [", ".join(words[i:i + span]) for i in range(0, len(words), span)]
-                flipped_names_list = helpers.flip_names(list_of_names)
-                #print(flipped_names_list)
-                mapped_people = depicted_people_mapping(people_mapping_string, flipped_names_list)
-                infobox += "| depicted people    = " + mapped_people
+            if "commons" in people_mapping[flipped_name].keys():
+                return people_mapping[flipped_name]["commons"]
             else:
-                print("Error: not even number of names in depicted people: {}".format(item["Personnamn / avbildad"]))
+                return people_mapping[flipped_name]["name"]
+
+
+    def extract_mappings_from_list_of_depicted_people(flipped_names):
+        out_string = ""
+        for name in flipped_names:
+            selected_mapping = select_best_mapping_for_depicted_person(name)
+            out_string += selected_mapping + "/"
+        mapped_names = out_string.rstrip("/")
+        return mapped_names
+
+    def extract_mapping_of_depicted_person(flipped_name):
+            mapped_name = select_best_mapping_for_depicted_person(flipped_name)
+            return mapped_name
+
+
+    def map_depicted_person_field(name_string_or_list):
+
+        words = name_string_or_list.split(", ")
+        span = 2
+        joined_words = [", ".join(words[i:i + span]) for i in range(0, len(words), span)]
+        print("joined_words: {}".format(joined_words))
+
+        if len(joined_words) == 1:
+            flipped_name = helpers.flip_name(joined_words[0])
+            print("flipped_name: {}".format(flipped_name))
+            depicted_people_value = extract_mapping_of_depicted_person(flipped_name)
+            return depicted_people_value
+
+        elif len(joined_words) >1:
+            flipped_names = helpers.flip_names(joined_words)
+            print("flipped_names: {}".format(flipped_names))
+            depicted_people_value = extract_mappings_from_list_of_depicted_people(flipped_names)
+            return depicted_people_value
+
+        else:
+            # TODO: add logic for maintanence category for faulty depicted people field
+            print("<Personnamn / avbildad> doesn't seem to be even full names: {}".format(name_string_or_list))
+            return name_string_or_list
+
+
+
+
+    infobox += "| depicted people    = "
+    if not item["Personnamn / avbildad"] == "":
+        name_string_or_list = item["Personnamn / avbildad"]
+        mapped_depicted_person_field = map_depicted_person_field(name_string_or_list)
+        infobox += mapped_depicted_person_field + "\n"
     else:
-        infobox += "| depicted people    = "
-    infobox += "\n"
+        infobox += "\n"
+
 
     infobox += "| depicted place     = "
     if item["Ort, foto"] in places:
@@ -200,6 +240,8 @@ def generate_infobox_template(item, places):
 #     """
     print()
     print(infobox)
+
+    infobox += depicted_people_content_category_string + "\n"
 
     return infobox
 
