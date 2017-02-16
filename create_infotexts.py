@@ -81,7 +81,9 @@ people_mapping_string = """{
 people_mapping = json.loads(people_mapping_string)
 
 def load_places_mapping():
-    """Reads wikitable html and returns a dictionary"""
+    """Reads wikitable html and returns a dictionary
+    :returns: dictionary with keywords as keys
+    """
     kw_maps_url = "https://commons.wikimedia.org/wiki/Commons:Medelhavsmuseet/batchUploads/Cypern_places"
     places = pd.read_html(kw_maps_url, attrs={"class": "wikitable sortable"}, header=0)
 
@@ -99,7 +101,10 @@ def load_places_mapping():
     return places_dict
 
 def load_json_metadata(infile):
-    """Load metadata json blob created with ´metadata_to_json_and_fnamesmap.py´"""
+    """Load metadata json blob as dictionary for further processing.
+    :infile: created with ´metadata_to_json_and_fnamesmap.py´
+    :returns: dictionary with <Fotonummer> as keys e.g. `C03643` for image file `C03643.tif´
+    """
     metadata = json.load(open(infile))
 
     #print("metadata item C01427: {}".format(metadata["C01427"]))
@@ -107,13 +112,13 @@ def load_json_metadata(infile):
     return metadata
 
 def create_people_mapping_wikitable(people_mapping):
-    # TODO: create logic for people mapping wikitable
+    # TODO: create logic for people mapping wikitable [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/14]
     pass
 
 def generate_infobox_template(item, places):
     """Takes one item from metadata dictionary and constructs the infobox template.
-
-    Return: item infobox as string
+    :item: one metadata row for one photo
+    :returns: infobox for the item as a string
     """
     # TODO: write infobox logic based on https://phabricator.wikimedia.org/T156612 [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/11]
 
@@ -145,6 +150,11 @@ def generate_infobox_template(item, places):
     infobox += "\n"
 
     def select_best_mapping_for_depicted_person(flipped_name):
+        """
+        :flipped_name: string representing full name turned around from e.g.
+        "surname, given name" -> "given name surename"
+        :return:  maps a name to it's best mapping; wikidata, then commons and lastly the name only
+        """
         if "wikidata" in people_mapping[flipped_name].keys():
             return people_mapping[flipped_name]["wikidata"]
         else:
@@ -155,6 +165,10 @@ def generate_infobox_template(item, places):
 
 
     def extract_mappings_from_list_of_depicted_people(flipped_names):
+        """
+        :flipped_names: string with full names turned around from e.g. "surname, given name" -> "given name surename"
+        :return: a string represention of several names mapped to either wikidata, commons or the names only
+        """
         out_string = ""
         for name in flipped_names:
             selected_mapping = select_best_mapping_for_depicted_person(name)
@@ -163,11 +177,20 @@ def generate_infobox_template(item, places):
         return mapped_names
 
     def extract_mapping_of_depicted_person(flipped_name):
-            mapped_name = select_best_mapping_for_depicted_person(flipped_name)
-            return mapped_name
+        """
+        :flipped_name: string representing full name turned around from e.g.
+        "surname, given name" -> "given name surename"
+        :return: string representation of a name mapped to either wikidata, commons or the name only
+        """
+        mapped_name = select_best_mapping_for_depicted_person(flipped_name)
+        return mapped_name
 
 
     def map_depicted_person_field(name_string_or_list):
+        """
+        :name_string_or_list: string representing one full name or series of full names (of faulty)
+        :return: a string of either one mapped name or several mapped names
+        """
 
         words = name_string_or_list.split(", ")
         span = 2
@@ -187,12 +210,9 @@ def generate_infobox_template(item, places):
             return depicted_people_value
 
         else:
-            # TODO: add logic for maintanence category for faulty depicted people field
+            # TODO: add logic for maintanence category for faulty depicted people field [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/15]
             print("<Personnamn / avbildad> doesn't seem to be even full names: {}".format(name_string_or_list))
             return name_string_or_list
-
-
-
 
     infobox += "| depicted people    = "
     if not item["Personnamn / avbildad"] == "":
@@ -247,15 +267,17 @@ def generate_infobox_template(item, places):
 
 def generate_content_cats(item):
     """Takes one item from metadata dictionary and constructs the meta-categories.
-
-        Return: meta-categories as string"""
+    :item: one metadata row for one photo
+    :returns: meta-categories as string
+    """
     # TODO: write logic for content-categories [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/10]
     pass
 
 def generate_meta_cats(item):
     """Takes one item from metadata dictionary and constructs the meta-categories.
-
-    Return: meta-categories as string"""
+    :item: one metadata row for one photo
+    :returns meta-categories as string
+    """
     # TODO: write logic for meta-categories e.g. maintanence categories [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/13]
     # [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/12]
     # see https://phabricator.wikimedia.org/T156612#3008806 on lacking description
@@ -263,14 +285,9 @@ def generate_meta_cats(item):
 
 
 def main():
-    """Illustrate function-level docstring.
+    """Creation of the infoxtext, i.e. wikitext, that goes along with an uploaded image to Commons.
     
-    Note that all docstrings begin with a one-line summary. The summary is
-    written in the imperative mood ("do", "use", "find", "return", "render",
-    etc) and ends with a period. The method signature is not, in any way,
-    duplicated into the comments (that would be difficult to maintain).
-    All subsequent paragraphs in a docstring are indented exactly the same as
-    the summary line. The same applies to the closing quotation marks.
+    :metadata_json: created with script `metadata_to_json_and_fnamesmap.py
     """
     metadata_json = "SMVK-Cypern_2017-01_metadata.json"
     outpath = "./infofiles/"
