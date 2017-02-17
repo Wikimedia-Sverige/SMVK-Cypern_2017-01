@@ -113,7 +113,16 @@ def load_json_metadata(infile):
 
 def create_people_mapping_wikitable(people_mapping):
     # TODO: create logic for people mapping wikitable [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/14]
-    pass
+    table = ""
+    table += """{| class="wikitable sortable" style="width: 60%; height: 200px;"
+    ! Nyckelord
+    ! frequency
+    ! Commons category
+    ! wikidata
+    |-"""
+
+
+    return table
 
 def select_best_mapping_for_depicted_person(flipped_name):
         """
@@ -278,10 +287,7 @@ def generate_infobox_template(item, places):
 
     infobox += "}}\n"
 
-
-    print()
-    print(infobox)
-
+    # TODO: Fix that depicted people are added as content categories
     infobox += depicted_people_content_category_string + "\n"
 
     return infobox
@@ -313,6 +319,9 @@ def main():
     metadata_json = "SMVK-Cypern_2017-01_metadata.json"
     outpath = "./infofiles/"
 
+    people = create_people_mapping_wikitable(people_mapping)
+    print(people + "\n")
+
     places = load_places_mapping()
     #print(places)
 
@@ -321,6 +330,7 @@ def main():
         outfile = open(outpath + fotonr + ".info", "w")
         full_infotext = ""
         infobox = generate_infobox_template(metadata[fotonr], places)
+        #print(infobox)
         full_infotext += infobox + "\n"
 
         #content_cats = generate_content_cats(metadata[fotonr])
