@@ -269,7 +269,7 @@ def generate_infobox_template(item, places):
     #    fotonr = match.group("fotonummer")
     #    infobox += "'''" + fotonr + ".tif'''\n{{SMVK cooperation project|COH}}\n"
     #else:
-    #    print("WARNING: No fotonummer found in smvk_link for image {}!".format(item))
+    #    print("WARNING: No fotonummer found in smvk_link for image {}!".format(item)) # caught error in one file
     infobox += "'''" + item["Fotonummer"] + ".tif'''\n{{SMVK cooperation project|COH}}\n"
 
     infobox += "| permission         = {{cc-zero}}\n"
