@@ -196,17 +196,17 @@ def generate_infobox_template(item, places):
         words = name_string_or_list.split(", ")
         span = 2
         joined_words = [", ".join(words[i:i + span]) for i in range(0, len(words), span)]
-        print("joined_words: {}".format(joined_words))
+        #print("joined_words: {}".format(joined_words))
 
         if len(joined_words) == 1:
             flipped_name = helpers.flip_name(joined_words[0])
-            print("flipped_name: {}".format(flipped_name))
+            #print("flipped_name: {}".format(flipped_name))
             depicted_people_value = extract_mapping_of_depicted_person(flipped_name)
             return depicted_people_value
 
         elif len(joined_words) >1:
             flipped_names = helpers.flip_names(joined_words)
-            print("flipped_names: {}".format(flipped_names))
+            #print("flipped_names: {}".format(flipped_names))
             depicted_people_value = extract_mappings_from_list_of_depicted_people(flipped_names)
             return depicted_people_value
 
@@ -239,26 +239,46 @@ def generate_infobox_template(item, places):
         infobox += str(item["Fotodatum"])
     infobox += "\n"
 
+    infobox += "| medium             = " + "\n"
 
-#  |date               = <Fotodatum>
-#  |medium             =
-#  |dimensions         =
-#  |institution        = {{Institution:Statens museer för världskultur}}
-#  |department         = [[:d:Q1331646|Medelhavsmuseet]]
-#  |references         =
-#  |object history     =
-#  |exhibition history =
-#  |credit line        =
-#  |inscriptions       =
-#  |notes              =
-#  |accession number   = {{SMVK-MM-link|<Länk[last digits]>|<Fotonummer>}}
-#  |source             = The original image file was recieved from SMVK with the following filename:  <br />
-# '''<Fotonummer>.tif''' // Double check this!
-# {{SMVK cooperation project|COH}}
-#  |permission         = {{cc-zero}}
-#  |other_versions     =
-# }}
-#     """
+    infobox += "| dimensions         = " + "\n"
+
+    infobox += "| institution        = {{Institution:Statens museer för världskultur}}" +"\n"
+
+    infobox += "| department         = [[:d:Q1331646|Medelhavsmuseet]]" + "\n"
+
+    infobox += "| references         = " + "\n"
+
+    infobox += "| objects history    = " + "\n"
+
+    infobox += "| exhibition history = " + "\n"
+
+    infobox += "| credit line        = " + "\n"
+
+    infobox += "| inscriptions       = " + "\n"
+
+    infobox += "| notes              = " + "\n"
+
+    infobox += "| accession number   = " + item["smvk_link"] + "\n"
+
+    infobox += "| source             = " + "The original image file was recieved from SMVK with the following filename:  <br />"
+
+    #fotonr_pattern = re.compile(r'\{\{SMVK-MM-link\|\d{,7}\|(?P<fotonummer>\w{,6})\}\}')
+    #match = fotonr_pattern.search(item["smvk_link"])
+    #if match:
+    #    fotonr = match.group("fotonummer")
+    #    infobox += "'''" + fotonr + ".tif'''\n{{SMVK cooperation project|COH}}\n"
+    #else:
+    #    print("WARNING: No fotonummer found in smvk_link for image {}!".format(item))
+    infobox += "'''" + item["Fotonummer"] + ".tif'''\n{{SMVK cooperation project|COH}}\n"
+
+    infobox += "| permission         = {{cc-zero}}\n"
+
+    infobox += "| other_versions     = \n"
+
+    infobox += "}}\n"
+
+
     print()
     print(infobox)
 
