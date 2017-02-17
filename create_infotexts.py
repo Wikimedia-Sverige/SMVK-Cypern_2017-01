@@ -115,6 +115,43 @@ def create_people_mapping_wikitable(people_mapping):
     # TODO: create logic for people mapping wikitable [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/14]
     pass
 
+def select_best_mapping_for_depicted_person(flipped_name):
+        """
+        :flipped_name: string representing full name turned around from e.g.
+        "surname, given name" -> "given name surename"
+        :return:  maps a name to it's best mapping; wikidata, then commons and lastly the name only
+        """
+        if "wikidata" in people_mapping[flipped_name].keys():
+            return people_mapping[flipped_name]["wikidata"]
+        else:
+            if "commons" in people_mapping[flipped_name].keys():
+                return people_mapping[flipped_name]["commons"]
+            else:
+                return people_mapping[flipped_name]["name"]
+
+
+def extract_mappings_from_list_of_depicted_people(flipped_names):
+        """
+        :flipped_names: string with full names turned around from e.g. "surname, given name" -> "given name surename"
+        :return: a string represention of several names mapped to either wikidata, commons or the names only
+        """
+        out_string = ""
+        for name in flipped_names:
+            selected_mapping = select_best_mapping_for_depicted_person(name)
+            out_string += selected_mapping + "/"
+        mapped_names = out_string.rstrip("/")
+        return mapped_names
+
+def extract_mapping_of_depicted_person(flipped_name):
+        """
+        :flipped_name: string representing full name turned around from e.g.
+        "surname, given name" -> "given name surename"
+        :return: string representation of a name mapped to either wikidata, commons or the name only
+        """
+        mapped_name = select_best_mapping_for_depicted_person(flipped_name)
+        return mapped_name
+
+
 def generate_infobox_template(item, places):
     """Takes one item from metadata dictionary and constructs the infobox template.
     :item: one metadata row for one photo
@@ -148,42 +185,6 @@ def generate_infobox_template(item, places):
     infobox += "}}\n"
     infobox += "{{en|The Swedish Cyprus expedition 1927-1931}}"
     infobox += "\n"
-
-    def select_best_mapping_for_depicted_person(flipped_name):
-        """
-        :flipped_name: string representing full name turned around from e.g.
-        "surname, given name" -> "given name surename"
-        :return:  maps a name to it's best mapping; wikidata, then commons and lastly the name only
-        """
-        if "wikidata" in people_mapping[flipped_name].keys():
-            return people_mapping[flipped_name]["wikidata"]
-        else:
-            if "commons" in people_mapping[flipped_name].keys():
-                return people_mapping[flipped_name]["commons"]
-            else:
-                return people_mapping[flipped_name]["name"]
-
-
-    def extract_mappings_from_list_of_depicted_people(flipped_names):
-        """
-        :flipped_names: string with full names turned around from e.g. "surname, given name" -> "given name surename"
-        :return: a string represention of several names mapped to either wikidata, commons or the names only
-        """
-        out_string = ""
-        for name in flipped_names:
-            selected_mapping = select_best_mapping_for_depicted_person(name)
-            out_string += selected_mapping + "/"
-        mapped_names = out_string.rstrip("/")
-        return mapped_names
-
-    def extract_mapping_of_depicted_person(flipped_name):
-        """
-        :flipped_name: string representing full name turned around from e.g.
-        "surname, given name" -> "given name surename"
-        :return: string representation of a name mapped to either wikidata, commons or the name only
-        """
-        mapped_name = select_best_mapping_for_depicted_person(flipped_name)
-        return mapped_name
 
 
     def map_depicted_person_field(name_string_or_list):
