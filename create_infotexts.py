@@ -112,15 +112,26 @@ def load_json_metadata(infile):
     return metadata
 
 def create_people_mapping_wikitable(people_mapping):
-    # TODO: create logic for people mapping wikitable [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/14]
+
     table = ""
     table += """{| class="wikitable sortable" style="width: 60%; height: 200px;"
-    ! Nyckelord
-    ! frequency
-    ! Commons category
-    ! wikidata
-    |-"""
-
+! name
+! commons
+! wikidata
+|-\n"""
+    for full_name in people_mapping:
+        table += "| " + people_mapping[full_name]["name"] + "\n"
+        if "commons" in people_mapping[full_name].keys():
+            better_commons_link = re.sub(r"\[\[Category", "[[:Category", people_mapping[full_name]["commons"])
+            table += "| " + better_commons_link + "\n"
+        else:
+            table += "| -\n"
+        if "wikidata" in people_mapping[full_name].keys():
+            table += "| " + people_mapping[full_name]["wikidata"] + "\n"
+        else:
+            table += "| -\n"
+        table += "|-\n"
+    table += "-}\n"
 
     return table
 
@@ -144,6 +155,7 @@ def extract_mappings_from_list_of_depicted_people(flipped_names):
         :flipped_names: string with full names turned around from e.g. "surname, given name" -> "given name surename"
         :return: a string represention of several names mapped to either wikidata, commons or the names only
         """
+
         out_string = ""
         for name in flipped_names:
             selected_mapping = select_best_mapping_for_depicted_person(name)
@@ -160,13 +172,39 @@ def extract_mapping_of_depicted_person(flipped_name):
         mapped_name = select_best_mapping_for_depicted_person(flipped_name)
         return mapped_name
 
+def map_depicted_person_field(name_string_or_list):
+        """
+        :name_string_or_list: string representing one full name or series of full names (of faulty)
+        :return: a string of either one mapped name or several mapped names
+        """
+        words = name_string_or_list.split(", ")
+        span = 2
+        joined_words = [", ".join(words[i:i + span]) for i in range(0, len(words), span)]
+        #print("joined_words: {}".format(joined_words))
+
+        if len(joined_words) == 1:
+            flipped_name = helpers.flip_name(joined_words[0])
+            #print("flipped_name: {}".format(flipped_name))
+            depicted_people_value = extract_mapping_of_depicted_person(flipped_name)
+            return depicted_people_value
+
+        elif len(joined_words) >1:
+            flipped_names = helpers.flip_names(joined_words)
+            #print("flipped_names: {}".format(flipped_names))
+            depicted_people_value = extract_mappings_from_list_of_depicted_people(flipped_names)
+            return depicted_people_value
+
+        else:
+            # TODO: add logic for maintanence category for faulty depicted people field [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/15]
+            print("<Personnamn / avbildad> doesn't seem to be even full names: {}".format(name_string_or_list))
+            return name_string_or_list
+
 
 def generate_infobox_template(item, places):
     """Takes one item from metadata dictionary and constructs the infobox template.
     :item: one metadata row for one photo
     :returns: infobox for the item as a string
     """
-    # TODO: write infobox logic based on https://phabricator.wikimedia.org/T156612 [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/11]
 
     depicted_people_content_category_string = "" # to keep track of and add unused commons categories
 
@@ -194,35 +232,6 @@ def generate_infobox_template(item, places):
     infobox += "}}\n"
     infobox += "{{en|The Swedish Cyprus expedition 1927-1931}}"
     infobox += "\n"
-
-
-    def map_depicted_person_field(name_string_or_list):
-        """
-        :name_string_or_list: string representing one full name or series of full names (of faulty)
-        :return: a string of either one mapped name or several mapped names
-        """
-
-        words = name_string_or_list.split(", ")
-        span = 2
-        joined_words = [", ".join(words[i:i + span]) for i in range(0, len(words), span)]
-        #print("joined_words: {}".format(joined_words))
-
-        if len(joined_words) == 1:
-            flipped_name = helpers.flip_name(joined_words[0])
-            #print("flipped_name: {}".format(flipped_name))
-            depicted_people_value = extract_mapping_of_depicted_person(flipped_name)
-            return depicted_people_value
-
-        elif len(joined_words) >1:
-            flipped_names = helpers.flip_names(joined_words)
-            #print("flipped_names: {}".format(flipped_names))
-            depicted_people_value = extract_mappings_from_list_of_depicted_people(flipped_names)
-            return depicted_people_value
-
-        else:
-            # TODO: add logic for maintanence category for faulty depicted people field [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/15]
-            print("<Personnamn / avbildad> doesn't seem to be even full names: {}".format(name_string_or_list))
-            return name_string_or_list
 
     infobox += "| depicted people    = "
     if not item["Personnamn / avbildad"] == "":
@@ -272,13 +281,6 @@ def generate_infobox_template(item, places):
 
     infobox += "| source             = " + "The original image file was recieved from SMVK with the following filename:  <br />"
 
-    #fotonr_pattern = re.compile(r'\{\{SMVK-MM-link\|\d{,7}\|(?P<fotonummer>\w{,6})\}\}')
-    #match = fotonr_pattern.search(item["smvk_link"])
-    #if match:
-    #    fotonr = match.group("fotonummer")
-    #    infobox += "'''" + fotonr + ".tif'''\n{{SMVK cooperation project|COH}}\n"
-    #else:
-    #    print("WARNING: No fotonummer found in smvk_link for image {}!".format(item)) # caught error in one file
     infobox += "'''" + item["Fotonummer"] + ".tif'''\n{{SMVK cooperation project|COH}}\n"
 
     infobox += "| permission         = {{cc-zero}}\n"
@@ -287,7 +289,6 @@ def generate_infobox_template(item, places):
 
     infobox += "}}\n"
 
-    # TODO: Fix that depicted people are added as content categories
     infobox += depicted_people_content_category_string + "\n"
 
     return infobox
@@ -325,21 +326,24 @@ def main():
     places = load_places_mapping()
     #print(places)
 
+    global CONTENT_CATS
+
     metadata = load_json_metadata(metadata_json)
     for fotonr in metadata:
-        outfile = open(outpath + fotonr + ".info", "w")
         full_infotext = ""
+        outfile = open(outpath + fotonr + ".info", "w")
+
         infobox = generate_infobox_template(metadata[fotonr], places)
         #print(infobox)
         full_infotext += infobox + "\n"
 
         #content_cats = generate_content_cats(metadata[fotonr])
-        #infotext += content_cats + "\n"
+        full_infotext += CONTENT_CATS + "\n"
 
         #meta_cats = generate_meta_cats(metadata[fotonr])
-        #infotext += meta_cats
+        #full_infotext += meta_cats
 
-        #print(infotext + "\n--------------\n")
+        print(full_infotext + "\n--------------\n")
         #outfile.write(infotext)
         outfile.close()
 
