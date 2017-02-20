@@ -143,11 +143,10 @@ def select_best_mapping_for_depicted_person(flipped_name):
         """
         if "wikidata" in people_mapping[flipped_name].keys():
             return people_mapping[flipped_name]["wikidata"]
+        elif "commons" in people_mapping[flipped_name].keys():
+            return people_mapping[flipped_name]["commons"]
         else:
-            if "commons" in people_mapping[flipped_name].keys():
-                return people_mapping[flipped_name]["commons"]
-            else:
-                return people_mapping[flipped_name]["name"]
+            return people_mapping[flipped_name]["name"]
 
 
 def extract_mappings_from_list_of_depicted_people(flipped_names):
@@ -199,6 +198,14 @@ def map_depicted_person_field(name_string_or_list):
             print("<Personnamn / avbildad> doesn't seem to be even full names: {}".format(name_string_or_list))
             return name_string_or_list
 
+def create_list_of_depicted_people(depicted_people_string):
+    """
+
+    :param string representing one or more people:
+    :return: list of one or more people with flipped names
+    """
+    pass
+
 
 def generate_infobox_template(item, places):
     """Takes one item from metadata dictionary and constructs the infobox template.
@@ -233,6 +240,7 @@ def generate_infobox_template(item, places):
 
     infobox += "| depicted people    = "
     if not item["Personnamn / avbildad"] == "":
+        list_of_people = create_list_of_people()
         name_string_or_list = item["Personnamn / avbildad"]
         mapped_depicted_person_field, content_cats = map_depicted_person_field(name_string_or_list)
         infobox += mapped_depicted_person_field + "\n"
@@ -298,7 +306,7 @@ def generate_content_cats(item):
     :returns: meta-categories as string
     """
     # TODO: write logic for content-categories [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/10]
-    # TODO: make depicted people with commons cat be added to content cats
+    # TODO: make depicted people with commons cat be added to content cats [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/17]
     pass
 
 def generate_meta_cats(item):
