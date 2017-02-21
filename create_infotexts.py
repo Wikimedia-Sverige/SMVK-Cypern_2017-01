@@ -113,7 +113,7 @@ def create_commons_filename(metadata, fotonr):
         beskr = "Svenska Cypernexpeditionen 1927-1931"
         cleaned_fname = helpers.format_filename(beskr, "SMVK-MM-Cypern", metadata["Fotonummer"])
 
-    return cleaned_fname + ".tif
+    return cleaned_fname + ".tif"
 
 
 def load_json_metadata(infile):
@@ -314,7 +314,7 @@ def generate_content_cats(item):
     :returns: meta-categories as string
     """
     # TODO: write logic for content-categories [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/10]
-    # TODO: make depicted people with commons cat be added to content cats
+    # TODO: make depicted people with commons cat be added to content cats [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/19]
     pass
 
 def generate_meta_cats(item):
