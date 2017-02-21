@@ -135,6 +135,25 @@ def create_people_mapping_wikitable(people_mapping):
 
     return table
 
+
+def create_smvk_mm_link(item):
+    """Populates template SMVK-MM-link and appends to dictionary."""
+    smvk_link = ""
+    smvk_link += "{{SMVK-MM-link|"
+
+    url = item["Länk"]
+    obj_id = url.rpartition("/")[2]
+    smvk_link += obj_id
+
+    smvk_link += "|"
+
+    smvk_link += item["Fotonummer"]
+
+    smvk_link += "}}"
+
+    return smvk_link
+
+
 def select_best_mapping_for_depicted_person(flipped_name):
         """
         :flipped_name: string representing full name turned around from e.g.
@@ -234,10 +253,8 @@ def generate_infobox_template(item, places):
     infobox += "| depicted people    = "
     if not item["Personnamn / avbildad"] == "":
         name_string_or_list = item["Personnamn / avbildad"]
-        mapped_depicted_person_field, content_cats = map_depicted_person_field(name_string_or_list)
+        mapped_depicted_person_field = map_depicted_person_field(name_string_or_list)
         infobox += mapped_depicted_person_field + "\n"
-        if content_cats:
-            people_cats = True
 
     else:
         infobox += "\n"
@@ -278,7 +295,8 @@ def generate_infobox_template(item, places):
 
     infobox += "| notes              = " + "\n"
 
-    infobox += "| accession number   = " + item["smvk_link"] + "\n"
+    infobox += "| accession number   = " + create_smvk_mm_link(item) + "\n"
+        #print("dict_with_commons_filenames: {}".format(dict_with_commons_filenames))
 
     infobox += "| source             = " + "The original image file was recieved from SMVK with the following filename:  <br />"
 
@@ -341,7 +359,7 @@ def main():
         #meta_cats = generate_meta_cats(metadata[fotonr])
         #full_infotext += meta_cats
 
-        #print(full_infotext + "\n--------------\n")
+        print(full_infotext + "\n--------------\n")
         #outfile.write(infotext)
         outfile.close()
 
