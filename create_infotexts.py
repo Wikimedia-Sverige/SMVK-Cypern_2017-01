@@ -100,6 +100,22 @@ def load_places_mapping():
 
     return places_dict
 
+def create_commons_filename(metadata, fotonr):
+    """Creates commons filename according to https://phabricator.wikimedia.org/T156612 and ouputs to new_dict
+    :type populated_dict: dictionary
+    """
+
+    if not metadata["Beskrivning"] == "":
+        cleaned_fname = helpers.format_filename(metadata["Beskrivning"], "SMVK-MM-Cypern", metadata["Fotonummer"])
+        #print("Fname using BatchUploadTools: {}".format(cleaned_fname))
+    else:
+        # TODO: fix alternative description according to https://phabricator.wikimedia.org/T156612#3008806 [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/9]
+        beskr = "Svenska Cypernexpeditionen 1927-1931"
+        cleaned_fname = helpers.format_filename(beskr, "SMVK-MM-Cypern", metadata["Fotonummer"])
+
+    return cleaned_fname + ".tif
+
+
 def load_json_metadata(infile):
     """Load metadata json blob as dictionary for further processing.
     :infile: created with ´metadata_to_json_and_fnamesmap.py´
@@ -317,6 +333,7 @@ def main():
     
     :metadata_json: created with script `metadata_to_json_and_fnamesmap.py
     """
+
     metadata_json = "SMVK-Cypern_2017-01_metadata.json"
     outpath = "./infofiles/"
 
@@ -331,7 +348,10 @@ def main():
         full_infotext = ""
         outfile = open(outpath + fotonr + ".info", "w")
 
+        commons_filename = create_commons_filename(metadata, fotonr)
+
         infobox = generate_infobox_template(metadata[fotonr], places)
+
         #print(infobox)
         full_infotext += infobox + "\n"
 
