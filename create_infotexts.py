@@ -105,13 +105,13 @@ def create_commons_filename(metadata, fotonr):
     :type populated_dict: dictionary
     """
 
-    if not metadata["Beskrivning"] == "":
-        cleaned_fname = helpers.format_filename(metadata["Beskrivning"], "SMVK-MM-Cypern", metadata["Fotonummer"])
+    if not metadata[fotonr]["Beskrivning"] == "":
+        cleaned_fname = helpers.format_filename(metadata[fotonr]["Beskrivning"], "SMVK-MM-Cypern", metadata[fotonr]["Fotonummer"])
         #print("Fname using BatchUploadTools: {}".format(cleaned_fname))
     else:
         # TODO: fix alternative description according to https://phabricator.wikimedia.org/T156612#3008806 [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/9]
         beskr = "Svenska Cypernexpeditionen 1927-1931"
-        cleaned_fname = helpers.format_filename(beskr, "SMVK-MM-Cypern", metadata["Fotonummer"])
+        cleaned_fname = helpers.format_filename(beskr, "SMVK-MM-Cypern", metadata[fotonr]["Fotonummer"])
 
     return cleaned_fname + ".tif"
 
@@ -250,10 +250,8 @@ def generate_infobox_template(item, places):
     infobox += "| depicted people    = "
     if not item["Personnamn / avbildad"] == "":
         name_string_or_list = item["Personnamn / avbildad"]
-        mapped_depicted_person_field, content_cats = map_depicted_person_field(name_string_or_list)
+        mapped_depicted_person_field = map_depicted_person_field(name_string_or_list)
         infobox += mapped_depicted_person_field + "\n"
-        if content_cats:
-            people_cats = True
 
     else:
         infobox += "\n"
