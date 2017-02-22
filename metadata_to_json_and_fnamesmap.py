@@ -88,25 +88,6 @@ def add_commons_filenames_to_dict(metadata, populated_dict):
 
     return populated_dict
 
-def add_smvk_mm_link_to_dict(metadata, fname_dict):
-    """Populates template SMVK-MM-link and appends to dictionary."""
-    for index, row in metadata.iterrows():
-        smvk_link = ""
-        smvk_link += "{{SMVK-MM-link|"
-
-        url = row["Länk"]
-        obj_id = url.rpartition("/")[2]
-        smvk_link += obj_id
-
-        smvk_link += "|"
-
-        smvk_link += row["Fotonummer"]
-
-        smvk_link += "}}"
-
-        fname_dict[row["Fotonummer"]]["smvk_link"] = smvk_link
-
-    return fname_dict
 
 def create_linked_filenamesmapping_file(metadata_dict):
     """Inputs dictionary and outputs CSV-file with old vs new filenames.
@@ -157,12 +138,6 @@ def main(args):
 
         populated_dict = populate_new_dict_with_metadata(metadata, new_dict)
         #print("populated_dict: {}".format(populated_dict))
-
-        dict_with_commons_filenames = add_commons_filenames_to_dict(metadata, populated_dict)
-        #print("dict_with_commons_filenames: {}".format(dict_with_commons_filenames))
-
-        dict_with_smvk_mm_link = add_smvk_mm_link_to_dict(metadata, dict_with_commons_filenames)
-        print(dict_with_smvk_mm_link)
 
         create_linked_filenamesmapping_file(dict_with_smvk_mm_link)
 
