@@ -138,18 +138,7 @@ def create_people_mapping_wikitable(people_mapping):
 
 def create_smvk_mm_link(item):
     """Populates template SMVK-MM-link and appends to dictionary."""
-    smvk_link = ""
-    smvk_link += "{{SMVK-MM-link|"
-
-    url = item["Länk"]
-    obj_id = url.rpartition("/")[2]
-    smvk_link += obj_id
-
-    smvk_link += "|"
-
-    smvk_link += item["Fotonummer"]
-
-    smvk_link += "}}"
+    smvk_link = "{{{{SMVK-MM-LINK|{postnr}|{fotonr}}}}}".format(postnr=item["Postnummer"], fotonr=item["Fotonummer"])
 
     return smvk_link
 
@@ -296,7 +285,6 @@ def generate_infobox_template(item, places):
     infobox += "| notes              = " + "\n"
 
     infobox += "| accession number   = " + create_smvk_mm_link(item) + "\n"
-        #print("dict_with_commons_filenames: {}".format(dict_with_commons_filenames))
 
     infobox += "| source             = " + "The original image file was recieved from SMVK with the following filename:  <br />"
 
@@ -316,7 +304,7 @@ def generate_content_cats(item):
     :returns: meta-categories as string
     """
     # TODO: write logic for content-categories [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/10]
-    # TODO: make depicted people with commons cat be added to content cats
+    # TODO: make depicted people with commons cat be added to content cats [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/21]
     pass
 
 def generate_meta_cats(item):

@@ -139,9 +139,6 @@ def main(args):
         populated_dict = populate_new_dict_with_metadata(metadata, new_dict)
         #print("populated_dict: {}".format(populated_dict))
 
-        dict_with_smvk_mm_link =
-        print(dict_with_smvk_mm_link)
-
         create_linked_filenamesmapping_file(dict_with_smvk_mm_link)
 
         save_metadata_json_blob(dict_with_smvk_mm_link, args.json_out)
