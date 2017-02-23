@@ -80,7 +80,7 @@ def add_commons_filenames_to_dict(metadata, populated_dict):
             cleaned_fname = helpers.format_filename(row["Beskrivning"], "SMVK-MM-Cypern", row["Fotonummer"])
             #print("Fname using BatchUploadTools: {}".format(cleaned_fname))
         else:
-            # TODO: fix alternative description according to https://phabricator.wikimedia.org/T156612#3008806
+            # TODO: fix alternative description according to https://phabricator.wikimedia.org/T156612#3008806 [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/25]
             # [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/9]
             beskr = "Svenska Cypernexpeditionen 1927-1931"
             cleaned_fname = helpers.format_filename(beskr, "SMVK-MM-Cypern", row["Fotonummer"])
