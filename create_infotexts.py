@@ -201,7 +201,7 @@ def map_depicted_person_field(name_string_or_list):
 def create_list_of_depicted_people(depicted_people_string):
     """
     Part of Phabricator task https://phabricator.wikimedia.org/T158549
-    :param string representing one or more people:
+    :param string: representing one or more people
     :return: list of one or more people with flipped names
     """
     pass
