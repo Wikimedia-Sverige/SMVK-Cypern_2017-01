@@ -135,6 +135,14 @@ def create_people_mapping_wikitable(people_mapping):
 
     return table
 
+
+def create_smvk_mm_link(item):
+    """Populates template SMVK-MM-link and appends to dictionary."""
+    smvk_link = "{{{{SMVK-MM-LINK|{postnr}|{fotonr}}}}}".format(postnr=item["Postnummer"], fotonr=item["Fotonummer"])
+
+    return smvk_link
+
+
 def select_best_mapping_for_depicted_person(flipped_name):
         """
         :flipped_name: string representing full name turned around from e.g.
@@ -242,10 +250,8 @@ def generate_infobox_template(item, places):
     if not item["Personnamn / avbildad"] == "":
         list_of_people = create_list_of_people()
         name_string_or_list = item["Personnamn / avbildad"]
-        mapped_depicted_person_field, content_cats = map_depicted_person_field(name_string_or_list)
+        mapped_depicted_person_field = map_depicted_person_field(name_string_or_list)
         infobox += mapped_depicted_person_field + "\n"
-        if content_cats:
-            people_cats = True
 
     else:
         infobox += "\n"
@@ -286,7 +292,7 @@ def generate_infobox_template(item, places):
 
     infobox += "| notes              = " + "\n"
 
-    infobox += "| accession number   = " + item["smvk_link"] + "\n"
+    infobox += "| accession number   = " + create_smvk_mm_link(item) + "\n"
 
     infobox += "| source             = " + "The original image file was recieved from SMVK with the following filename:  <br />"
 
@@ -306,7 +312,8 @@ def generate_content_cats(item):
     :returns: meta-categories as string
     """
     # TODO: write logic for content-categories [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/10]
-    # TODO: make depicted people with commons cat be added to content cats [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/17]
+    # TODO: make depicted people with commons cat be added to content cats [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/19]
+
     pass
 
 def generate_meta_cats(item):
@@ -349,7 +356,7 @@ def main():
         #meta_cats = generate_meta_cats(metadata[fotonr])
         #full_infotext += meta_cats
 
-        #print(full_infotext + "\n--------------\n")
+        print(full_infotext + "\n--------------\n")
         #outfile.write(infotext)
         outfile.close()
 
