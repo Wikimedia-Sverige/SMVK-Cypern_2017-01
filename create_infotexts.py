@@ -179,24 +179,20 @@ def extract_mapping_of_depicted_person(flipped_name):
         mapped_name = select_best_mapping_for_depicted_person(flipped_name)
         return mapped_name
 
-def map_depicted_person_field(name_string_or_list):
+def map_depicted_person_field(list_of_people):
         """
         :name_string_or_list: string representing one full name or series of full names (of faulty)
         :return: a string of either one mapped name or several mapped names
         """
-        words = name_string_or_list.split(", ")
-        span = 2
-        joined_words = [", ".join(words[i:i + span]) for i in range(0, len(words), span)]
-        #print("joined_words: {}".format(joined_words))
 
-        if len(joined_words) == 1:
-            flipped_name = helpers.flip_name(joined_words[0])
+        if len(list_of_people) == 1:
+            flipped_name = helpers.flip_name(list_of_people[0])
             #print("flipped_name: {}".format(flipped_name))
             depicted_people_value = extract_mapping_of_depicted_person(flipped_name)
             return depicted_people_value
 
-        elif len(joined_words) >1:
-            flipped_names = helpers.flip_names(joined_words)
+        elif len(list_of_people) >1:
+            flipped_names = helpers.flip_names(list_of_people)
             #print("flipped_names: {}".format(flipped_names))
             depicted_people_value = extract_mappings_from_list_of_depicted_people(flipped_names)
             return depicted_people_value
@@ -248,9 +244,9 @@ def generate_infobox_template(item, places):
 
     infobox += "| depicted people    = "
     if not item["Personnamn / avbildad"] == "":
-        list_of_people = create_list_of_people()
-        name_string_or_list = item["Personnamn / avbildad"]
-        mapped_depicted_person_field = map_depicted_person_field(name_string_or_list)
+        list_of_people = create_list_of_depicted_people(item["Personnamn / avbildad"])
+        print("list_of_people: {}".format(list_of_people))
+        mapped_depicted_person_field = map_depicted_person_field(list_of_people)
         infobox += mapped_depicted_person_field + "\n"
 
     else:
@@ -356,7 +352,7 @@ def main():
         #meta_cats = generate_meta_cats(metadata[fotonr])
         #full_infotext += meta_cats
 
-        print(full_infotext + "\n--------------\n")
+        #print(full_infotext + "\n--------------\n")
         #outfile.write(infotext)
         outfile.close()
 
