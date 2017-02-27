@@ -81,9 +81,8 @@ people_mapping = json.loads(people_mapping_string)
 
 
 def load_places_mapping():
-    """
-    Reads wikitable html and returns a dictionary
-    :returns: dictionary with keywords as keys
+    """Read  wikitable html and return a dictionary
+    :return: dictionary
     """
     kw_maps_url = "https://commons.wikimedia.org/wiki/Commons:Medelhavsmuseet/batchUploads/Cypern_places"
     places = pd.read_html(kw_maps_url, attrs={"class": "wikitable sortable"}, header=0)
@@ -103,16 +102,21 @@ def load_places_mapping():
 
 
 def create_commons_filename(metadata, fotonr):
-    """Creates commons filename according to https://phabricator.wikimedia.org/T156612 and ouputs to new_dict
+    """Transform original filename into Wikimedia commons style filename.
+
+    See https://phabricator.wikimedia.org/T156612 for definition.
+    Note: the returned filename does not include file extension e.g. '.tif'
+
     :param metadata: dictionary
     :param fotonr: string representing the <Fotonummer> field in the metadata
+    :return: string
     """
     if not metadata[fotonr]["Beskrivning"] == "":
         cleaned_fname = helpers.format_filename(metadata[fotonr]["Beskrivning"], "SMVK-MM-Cypern",
                                                 metadata[fotonr]["Fotonummer"])
         # print("Fname using BatchUploadTools: {}".format(cleaned_fname))
     else:
-        # TODO: fix alternative description according to https://phabricator.wikimedia.org/T156612#3008806
+        # TODO: Generate better descriptions, see https://phabricator.wikimedia.org/T158945
         beskr = "Svenska Cypernexpeditionen 1927-1931"
         cleaned_fname = helpers.format_filename(beskr, "SMVK-MM-Cypern", metadata[fotonr]["Fotonummer"])
 
@@ -132,8 +136,8 @@ def load_json_metadata(infile):
 
 
 def create_people_mapping_wikitable(people_mapping):
-    """
-    Transform json style people mapping to wikitable
+    """Transform json style people mapping to wikitable.
+
     :param people_mapping: json dictionary
     :return: string
     """
@@ -168,24 +172,25 @@ def create_smvk_mm_link(item):
 
 
 def select_best_mapping_for_depicted_person(flipped_name):
+    """Lookup available mappings for a string respresenting a name and return best choice.
+
+    :flipped_name: string representing full name turned around from e.g. "surname, given name" -> "given name surename"
+    :return:  maps a name to it's best mapping; wikidata, then commons and lastly the name only
     """
-        :flipped_name: string representing full name turned around from e.g.
-        "surname, given name" -> "given name surename"
-        :return:  maps a name to it's best mapping; wikidata, then commons and lastly the name only
-        """
     if "wikidata" in people_mapping[flipped_name].keys():
         return people_mapping[flipped_name]["wikidata"]
+
+    elif "commons" in people_mapping[flipped_name].keys():
+        return people_mapping[flipped_name]["commons"]
     else:
-        if "commons" in people_mapping[flipped_name].keys():
-            return people_mapping[flipped_name]["commons"]
-        else:
-            return people_mapping[flipped_name]["name"]
+        return people_mapping[flipped_name]["name"]
 
 
 def extract_mappings_from_list_of_depicted_people(flipped_names):
-    """
-        :flipped_names: string with full names turned around from e.g. "surname, given name" -> "given name surename"
-        :return: a string represention of several names mapped to either wikidata, commons or the names only
+    """Pass each name in a list of names to mapping function.
+
+    :param flipped_names: string with full names turned around from e.g. "surname, given name" -> "given name surename"
+    :return: a string represention of several names mapped to either wikidata, commons or the names only
         """
 
     out_string = ""
