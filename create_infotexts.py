@@ -179,36 +179,38 @@ def extract_mapping_of_depicted_person(flipped_name):
         mapped_name = select_best_mapping_for_depicted_person(flipped_name)
         return mapped_name
 
-def map_depicted_person_field(list_of_people):
+def map_depicted_person_field(flipped_name):
         """
         :name_string_or_list: string representing one full name or series of full names (of faulty)
         :return: a string of either one mapped name or several mapped names
         """
 
-        if len(list_of_people) == 1:
-            flipped_name = helpers.flip_name(list_of_people[0])
-            #print("flipped_name: {}".format(flipped_name))
-            depicted_people_value = extract_mapping_of_depicted_person(flipped_name)
-            return depicted_people_value
+        print("flipped_name: {}".format(flipped_name))
+        depicted_people_value = extract_mapping_of_depicted_person(flipped_name)
+        return depicted_people_value
 
-        elif len(list_of_people) >1:
-            flipped_names = helpers.flip_names(list_of_people)
-            #print("flipped_names: {}".format(flipped_names))
-            depicted_people_value = extract_mappings_from_list_of_depicted_people(flipped_names)
-            return depicted_people_value
+        #print("flipped_names: {}".format(flipped_names))
+        depicted_people_value = extract_mappings_from_list_of_depicted_people(flipped_names)
+        return depicted_people_value
 
-        else:
-            # TODO: add logic for maintanence category for faulty depicted people field [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/15]
-            print("<Personnamn / avbildad> doesn't seem to be even full names: {}".format(name_string_or_list))
-            return name_string_or_list
 
-def create_list_of_depicted_people(depicted_people_string):
+def create_list_of_flipped_depicted_people(depicted_people_string):
     """
     Part of Phabricator task https://phabricator.wikimedia.org/T158549
     :param string: representing one or more people
-    :return: list of one or more people with flipped names
+    :return: list of one or more people
     """
-    pass
+    if len(depicted_people_string.split(", ")) == 2:
+        flipped_name = helpers.flip_name(depicted_people_string)
+        return depicted_people_string.split(", ")
+
+    elif len(depicted_people_string.split(", ")) >= 4:
+        flipped_names = helpers.flip_names(depicted_people_string)
+
+    else:
+        # TODO: add logic for maintanence category for faulty depicted people field [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/15]
+        print("<Personnamn / avbildad> doesn't seem to be even full names: {}".format(name_string_or_list))
+        return name_string_or_list
 
 
 def generate_infobox_template(item, places):
@@ -243,11 +245,15 @@ def generate_infobox_template(item, places):
     infobox += "\n"
 
     infobox += "| depicted people    = "
-    if not item["Personnamn / avbildad"] == "":
-        list_of_people = create_list_of_depicted_people(item["Personnamn / avbildad"])
+    if not item["Personnamn / avbildad"] == "" or item["Personnamn / avbildad"] == None:
+        list_of_people = create_list_of_flipped_depicted_people(item["Personnamn / avbildad"])
         print("list_of_people: {}".format(list_of_people))
-        mapped_depicted_person_field = map_depicted_person_field(list_of_people)
-        infobox += mapped_depicted_person_field + "\n"
+        if len(list_of_people) >= 1:
+            mapped_depicted_person_field = map_depicted_person_field(list_of_people)
+            infobox += mapped_depicted_person_field + "\n"
+        else:
+            print("Depicted person field value seems to be faulty: {}".format(list_of_people))
+            infobox += "\n"
 
     else:
         infobox += "\n"
