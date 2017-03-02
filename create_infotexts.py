@@ -81,7 +81,8 @@ people_mapping = json.loads(people_mapping_string)
 
 
 def load_places_mapping():
-    """Read  wikitable html and return a dictionary
+    """
+    Read  wikitable html and return a dictionary
     :return: dictionary
     """
     kw_maps_url = "https://commons.wikimedia.org/wiki/Commons:Medelhavsmuseet/batchUploads/Cypern_places"
@@ -102,7 +103,8 @@ def load_places_mapping():
 
 
 def create_commons_filename(metadata, fotonr):
-    """Transform original filename into Wikimedia commons style filename.
+    """
+    Transform original filename into Wikimedia commons style filename.
 
     See https://phabricator.wikimedia.org/T156612 for definition.
     Note: the returned filename does not include file extension e.g. '.tif'
@@ -124,7 +126,8 @@ def create_commons_filename(metadata, fotonr):
 
 
 def load_json_metadata(infile):
-    """Load metadata json blob as dictionary for further processing.
+    """
+    Load metadata json blob as dictionary for further processing.
     :infile: created with ´metadata_to_json_and_fnamesmap.py´
     :returns: dictionary with <Fotonummer> as keys e.g. `C03643` for image file `C03643.tif´
     """
@@ -136,7 +139,8 @@ def load_json_metadata(infile):
 
 
 def create_people_mapping_wikitable(people_mapping):
-    """Transform json style people mapping to wikitable.
+    """
+    Transform dictionary containing people mapping to wikitable.
 
     :param people_mapping: json dictionary
     :return: string
@@ -172,14 +176,17 @@ def create_smvk_mm_link(item):
 
 
 def select_best_mapping_for_depicted_person(flipped_name):
-    """Lookup available mappings for a string respresenting a name and return best choice.
+    """
+    Lookup available mappings for a string respresenting a name and return best choice.
+    The priority order is wikidata item < commons category < the name only
 
-    :flipped_name: string representing full name turned around from e.g. "surname, given name" -> "given name surename"
-    :return:  maps a name to it's best mapping; wikidata, then commons and lastly the name only
+    :flipped_name: string representing full name turned around from
+        e.g. "surname, given name" -> "given name surname"
+        note that give_name is normally one word e.g. "Erfraim"
+    :return:  string representing the selcted mapping value
     """
     if "wikidata" in people_mapping[flipped_name].keys():
         return people_mapping[flipped_name]["wikidata"]
-
     elif "commons" in people_mapping[flipped_name].keys():
         return people_mapping[flipped_name]["commons"]
     else:
@@ -187,11 +194,12 @@ def select_best_mapping_for_depicted_person(flipped_name):
 
 
 def extract_mappings_from_list_of_depicted_people(flipped_names):
-    """Pass each name in a list of names to mapping function.
+    """
+    Pass each name in a list of names to mapping function.
 
     :param flipped_names: string with full names turned around from e.g. "surname, given name" -> "given name surename"
     :return: a string represention of several names mapped to either wikidata, commons or the names only
-        """
+    """
 
     out_string = ""
     for name in flipped_names:
