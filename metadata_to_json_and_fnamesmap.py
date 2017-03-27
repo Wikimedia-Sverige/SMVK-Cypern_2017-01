@@ -53,6 +53,7 @@ def populate_new_dict_with_metadata(metadata, new_dict):
     metadata.fillna("", inplace=True)
 
     for index, row in metadata.iterrows():
+        new_dict[row["Fotonummer"]]["Fotonummer"] = row["Fotonummer"]
         new_dict[row["Fotonummer"]]["Postnummer"] = row["Postnr."]
         new_dict[row["Fotonummer"]]["Nyckelord"] = row["Nyckelord"]
         new_dict[row["Fotonummer"]]["Beskrivning"] = row["Beskrivning"]
@@ -68,25 +69,6 @@ def populate_new_dict_with_metadata(metadata, new_dict):
         new_dict[row["Fotonummer"]]["Länk"] = row["Länk"]
 
     return new_dict
-
-
-def add_commons_filenames_to_dict(metadata, populated_dict):
-    """Creates commons filename according to https://phabricator.wikimedia.org/T156612 and ouputs to new_dict
-    :type populated_dict: dictionary
-    """
-    for index, row in metadata.iterrows():
-        if pd.notnull(row.Beskrivning):
-            cleaned_fname = helpers.format_filename(row["Beskrivning"], "SMVK-MM-Cypern", row["Fotonummer"])
-            #print("Fname using BatchUploadTools: {}".format(cleaned_fname))
-        else:
-            # TODO: fix alternative description according to https://phabricator.wikimedia.org/T156612#3008806 [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/9]
-            beskr = "Svenska Cypernexpeditionen 1927-1931"
-            cleaned_fname = helpers.format_filename(beskr, "SMVK-MM-Cypern", row["Fotonummer"])
-
-
-        populated_dict[row["Fotonummer"]]["commons_fname"] = cleaned_fname + ".tif"
-
-    return populated_dict
 
 
 def create_linked_filenamesmapping_file(metadata_dict):
@@ -139,9 +121,7 @@ def main(args):
         populated_dict = populate_new_dict_with_metadata(metadata, new_dict)
         #print("populated_dict: {}".format(populated_dict))
 
-        create_linked_filenamesmapping_file(dict_with_smvk_mm_link)
-
-        save_metadata_json_blob(dict_with_smvk_mm_link, args.json_out)
+        save_metadata_json_blob(populated_dict, args.json_out)
 
     except IOError as e:
         print("IOError: {}".format(e))
