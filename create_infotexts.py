@@ -13,71 +13,8 @@ import re
 import pandas as pd
 import batchupload.helpers as helpers
 
-people_mapping_string = """{
-    "John Lindros": {
-        "name":"John Lindros",
-        "commons": "[[Category:John Lindros|John Lindros]]",
-        "wikidata": "[[:d:Q5957823|John Lindros]]"
-    },
-    "Lazaros Kristos": {
-        "name": "Lazaros Kristos"
-    },
-    "Alfred Westholm": {
-        "name":"Alfred Westholm",
-        "commons": "[[Category:Alfred Westholm|Alfred Westholm]]",
-        "wikidata": "[[:d:Q6238028|Alfred Westholm]]"
-    },
-    "Erik Sjökvist": {
-        "name":"Erik Sjöqvist",
-        "commons": "[[Category:Erik Sjöqvist|Erik Sjöqvist]]",
-        "wikidata": "[[:d:Q5388837|Erik Sjöqvist]]"
-    },
-    "Erik Sjöqvist": {
-        "name":"Erik Sjöqvist",
-        "commons": "[[Category:Erik Sjöqvist|Erik Sjöqvist]]",
-        "wikidata": "[[:d:Q5388837|Erik Sjöqvist]]"
-    },
-    "Einar Gjerstad": {
-        "name":"Einar Gjerstad",
-        "commons": "[[Category:Einar Gjerstad|Einar Gjerstad]]",
-        "wikidata": "[[:d:Q481299|Einar Gjerstad]]"
-    },
-    "Lazaros Giorkos": {
-        "name": "Lazaros Giorkos"
-    },
-    "Stefan Gjerstad": {
-        "name": "Stefan Gjerstad"
-    },
-    "Vivi Gjerstad": {
-        "name": "Vivi Gjerstad"
-    },
-    "Gudrun Otterman": {
-        "name":"Gudrun Otterman"
-    },
-    "Martin Gjerstad": {
-        "name":"Martin Gjerstad",
-        "commons": "[[Category:Martin Gjerstad|Martin Gjerstad]]",
-        "wikidata": "[[d:Q16632979|Martin Gjerstad]]"
-    },
-    "Knut Thyberg": {
-        "name":"Knut Thyberg",
-        "commons": "[[Category:Knut Thyberg|Knut Thyberg]]",
-        "wikidata": "[[:d:Q16633505|Knut Thyberg]]"
-    },
-    "Rosa Lindros": {
-        "name":"Rosa Lindros"
-    },
-    "Ernst Kjellberg": {
-        "name":"Ernst Kjellberg",
-        "commons": "[[Category:Ernst Kjellberg|Ernst Kjellberg]]",
-        "wikidata": "[[:d:Q5911946|Ernst Kjellberg]]"
-    },
-    "Bror Millberg": {
-        "name": "Bror Millberg"
-    }
-}"""
-
-people_mapping = json.loads(people_mapping_string)
+people_mapping_file = open("./people_mappings.json")
+people_mapping = json.loads(people_mapping_file.read())
 
 
 def load_places_mapping():
