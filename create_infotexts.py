@@ -335,3 +335,64 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+class CypernImage():
+    """Process the information for a single image."""
+
+    def __init__(self):
+        """Instantiate a single instance of a processed image."""
+        self.content_cats = []  # content cateogories wihtout 'Category:'-prefix
+        self.meta_cats = []  # maintance categories without 'Category:'-prefix
+        self.data = {}  # dictionary holding individual field values as wikitext
+
+    def process_depicted_people(self, names_string):
+        """
+        Create depicted people wikitext from raw input data.
+
+        Populates the data["depicted people"] field in self and interacts with
+        content_cats and meta_cats.
+
+        :param names_string: string representing one or more names.
+        """
+        try:
+            names = CypernImage.isolate_name(names_string)
+        except ValueError:
+            # add meta_cat (non matched names)
+            # store unprocessed string
+            # return
+            pass  # remove when implemented
+
+        if names:
+            # per name
+                # find best match
+                # add category (if one)
+            # store lista as wikitext string
+            pass  # remove when implemented
+
+    @staticmethod
+    def isolate_name(names_string):
+        """
+        Try isolating names and flipping names.
+
+        Expected input is a string with 'last1, first2, last2, first2...'
+
+        :param names_string: string representing depicted people
+        :return: list of flipped names.
+        :raises: ValueError if uneven number of names
+        """
+        if not names_string:
+            return []
+
+        if len(names_string.split(", ")) % 2 != 0:
+            raise ValueError("Uneven number of names.")
+
+        # Pairwise group name parts
+        words = names_string.split(", ")
+        span = 2
+        grouped_names = [", ".join(words[i:i + span]) for i in range(0, len(words), span)]
+
+        names = []
+        for name_pair in grouped_names:
+            flipped_name = helpers.flip_name(name_pair)
+            names.append(flipped_name)
+        return names
