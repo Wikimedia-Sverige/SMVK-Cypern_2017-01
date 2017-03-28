@@ -112,83 +112,15 @@ def create_smvk_mm_link(item):
     return smvk_link
 
 
-def select_best_mapping_for_depicted_person(flipped_name):
-    """
-    Lookup available mappings for a string respresenting a name and return best choice.
-    The priority order is wikidata item < commons category < the name only
-
-    :flipped_name: string representing full name turned around from
-        e.g. "surname, given name" -> "given name surname"
-        note that give_name is normally one word e.g. "Erfraim"
-    :return:  string representing the selcted mapping value
-    """
-    if "wikidata" in people_mapping[flipped_name].keys():
-        return people_mapping[flipped_name]["wikidata"]
-    elif "commons" in people_mapping[flipped_name].keys():
-        return people_mapping[flipped_name]["commons"]
-    else:
-        return people_mapping[flipped_name]["name"]
-
-
-def extract_mappings_from_list_of_depicted_people(flipped_names):
-    """
-    Pass each name in a list of names to mapping function.
-
-    :param flipped_names: string with full names turned around from e.g. "surname, given name" -> "given name surename"
-    :return: a string represention of several names mapped to either wikidata, commons or the names only
-    """
-
-    out_string = ""
-    for name in flipped_names:
-        selected_mapping = select_best_mapping_for_depicted_person(name)
-        out_string += selected_mapping + "/"
-    mapped_names = out_string.rstrip("/")
-    return mapped_names
-
-
-def extract_mapping_of_depicted_person(flipped_name):
-    """
-        :flipped_name: string representing full name turned around from e.g.
-        "surname, given name" -> "given name surename"
-        :return: string representation of a name mapped to either wikidata, commons or the name only
-        """
-    mapped_name = select_best_mapping_for_depicted_person(flipped_name)
-    return mapped_name
-
-
-def map_depicted_person_field(name_string_or_list):
-    """
-        :name_string_or_list: string representing one full name or series of full names (of faulty)
-        :return: a string of either one mapped name or several mapped names
-        """
-    words = name_string_or_list.split(", ")
-    span = 2
-    joined_words = [", ".join(words[i:i + span]) for i in range(0, len(words), span)]
-    # print("joined_words: {}".format(joined_words))
-
-    if len(joined_words) == 1:
-        flipped_name = helpers.flip_name(joined_words[0])
-        # print("flipped_name: {}".format(flipped_name))
-        depicted_people_value = extract_mapping_of_depicted_person(flipped_name)
-        return depicted_people_value
-
-    elif len(joined_words) > 1:
-        flipped_names = helpers.flip_names(joined_words)
-        # print("flipped_names: {}".format(flipped_names))
-        depicted_people_value = extract_mappings_from_list_of_depicted_people(flipped_names)
-        return depicted_people_value
-
-    else:
-        # TODO: add logic for maintanence category for faulty depicted people field
-        print("<Personnamn / avbildad> doesn't seem to be even full names: {}".format(name_string_or_list))
-        return name_string_or_list
-
-
-def generate_infobox_template(item, places):
+def generate_infobox_template(item, places, img):
     """Takes one item from metadata dictionary and constructs the infobox template.
-    :item: one metadata row for one photo
+    :param item: one metadata row for one photo
+    :param places:
+    :param img: a CypernImage object
     :returns: infobox for the item as a string
     """
+    # run CypernImage processing
+    img.process_depicted_people(item["Personnamn / avbildad"])
 
     infobox = ""
     infobox += "{{Photograph \n"
@@ -215,14 +147,7 @@ def generate_infobox_template(item, places):
     infobox += "{{en|The Swedish Cyprus expedition 1927-1931}}"
     infobox += "\n"
 
-    infobox += "| depicted people    = "
-    if not item["Personnamn / avbildad"] == "":
-        name_string_or_list = item["Personnamn / avbildad"]
-        mapped_depicted_person_field = map_depicted_person_field(name_string_or_list)
-        infobox += mapped_depicted_person_field + "\n"
-
-    else:
-        infobox += "\n"
+    infobox += "| depicted people    = " + img.data["depicted_people"] + "\n"
 
     infobox += "| depicted place     = "
     if item["Ort, foto"] in places:
@@ -274,27 +199,6 @@ def generate_infobox_template(item, places):
     return infobox
 
 
-def generate_content_cats(item):
-    """Takes one item from metadata dictionary and constructs the meta-categories.
-    :item: one metadata row for one photo
-    :returns: meta-categories as string
-    """
-    # TODO: write logic for content-categories [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/10]
-    # TODO: make depicted people with commons cat be added to content cats
-    pass
-
-
-def generate_meta_cats(item):
-    """Takes one item from metadata dictionary and constructs the meta-categories.
-    :item: one metadata row for one photo
-    :returns meta-categories as string
-    """
-    # TODO: write logic for meta-categories e.g. maintanence categories
-    # [Issue: https://github.com/mattiasostmar/SMVK-Cypern_2017-01/issues/12]
-    # see https://phabricator.wikimedia.org/T156612#3008806 on lacking description
-    pass
-
-
 def main():
     """Creation of the infoxtext, i.e. wikitext, that goes along with an uploaded image to Commons.
     
@@ -317,7 +221,9 @@ def main():
         commons_filename = create_commons_filename(metadata, fotonr)
         print("New filename: {}".format(commons_filename))
 
-        infobox = generate_infobox_template(metadata[fotonr], places)
+        img = CypernImage()
+        infobox = generate_infobox_template(metadata[fotonr], places, img)
+
 
         # print(infobox)
         full_infotext += infobox + "\n"
@@ -349,32 +255,34 @@ class CypernImage():
         """
         Create depicted people wikitext from raw input data.
 
-        Populates the data["depicted people"] field in self and interacts with
+        Populates the data["depicted_people"] field in self and interacts with
         content_cats and meta_cats.
+        
+        If name interpratation fails, we still store the problematic string + maintanence category.
 
         :param names_string: string representing one or more names.
         """
         try:
             names = CypernImage.isolate_name(names_string)
         except ValueError:
-            # add meta_cat (non matched names)
-            # store unprocessed string
-            # return
-            pass  # remove when implemented
+            self.meta_cats.append("Media_contributed_by_SMVK_2017-02_with_faulty_depicted_person_values")
+            self.data["depicted_people"] = names_string
+            return
 
-        if names:
-            # per name
-                # find best match
-                # add category (if one)
-            # store lista as wikitext string
-            pass  # remove when implemented
+        wikitext_names = []
+        for name in names:
+            wikitext_names.append(self.select_best_mapping_for_depicted_person(name))
+
+        self.data["depicted_people"] = "/".join(wikitext_names)
+
+
 
     @staticmethod
     def isolate_name(names_string):
         """
         Try isolating names and flipping names.
 
-        Expected input is a string with 'last1, first2, last2, first2...'
+        Expected input is a string with 'last1, first1, last2, first2...'
 
         :param names_string: string representing depicted people
         :return: list of flipped names.
@@ -396,3 +304,35 @@ class CypernImage():
             flipped_name = helpers.flip_name(name_pair)
             names.append(flipped_name)
         return names
+
+    def select_best_mapping_for_depicted_person(self, flipped_name):
+        """
+        Lookup available mappings for a string respresenting a name and return best choice.
+        
+        people_mapping is complete by design.
+        
+        The priority order is wikidata item < commons category < the name only.
+        :flipped_name: string representing full name turned around from
+            e.g. "surname, given name" -> "given name surname"
+            note that give_name is normally one word e.g. "Erfraim"
+        :return:  string representing the selcted mapping value
+        """
+        name_map = people_mapping[flipped_name]
+        name_as_wikitext = ""
+        if "wikidata" in name_map.keys():
+            name_as_wikitext = "[[:d:{wd_item}|{name}]]".format(
+                wd_item=name_map["wikidata"],
+                name=name_map["name"])
+
+        elif "commonscat" in name_map.keys():
+            name_as_wikitext = "[[Category:{commonscat}|{name}]]".format(
+                commonscat=name_map["commonscat"],
+                name=name_map["name"])
+
+        else:
+            name_as_wikitext = name_map["name"]
+
+        if "commonscat" in name_map.keys():
+            self.content_cats.append(name_map["commons"])
+
+        return name_as_wikitext
