@@ -239,9 +239,6 @@ def main():
         outfile.close()
 
 
-if __name__ == '__main__':
-    main()
-
 class CypernImage():
     """Process the information for a single image."""
 
@@ -250,6 +247,13 @@ class CypernImage():
         self.content_cats = []  # content cateogories wihtout 'Category:'-prefix
         self.meta_cats = []  # maintance categories without 'Category:'-prefix
         self.data = {}  # dictionary holding individual field values as wikitext
+
+        batch_cats = ["Swedish Cyprus Expedition|Swedish Cyprus Expedition",
+                      "Media_from_the_National_Museums_of_World_Culture",
+                      "Media_contributed_by_SMVK_2017-02"]
+
+        self.meta_cats.extend(batch_cats)
+
 
     def process_depicted_people(self, names_string):
         """
@@ -333,6 +337,10 @@ class CypernImage():
             name_as_wikitext = name_map["name"]
 
         if "commonscat" in name_map.keys():
-            self.content_cats.append(name_map["commons"])
+            self.content_cats.append(name_map["commonscat"])
 
         return name_as_wikitext
+
+
+if __name__ == '__main__':
+    main()
