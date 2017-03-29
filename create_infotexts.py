@@ -112,15 +112,16 @@ def create_smvk_mm_link(item):
     return smvk_link
 
 
-def generate_infobox_template(item, places, img):
+def generate_infobox_template(item, img):
     """Takes one item from metadata dictionary and constructs the infobox template.
     :param item: one metadata row for one photo
-    :param places:
+    :param places: 
     :param img: a CypernImage object
     :returns: infobox for the item as a string
     """
     # run CypernImage processing
     img.process_depicted_people(item["Personnamn / avbildad"])
+    img.process_depicted_place(item["Ort, foto"], item) # 'item' is row including pre-processed wd and commons values
 
     infobox = ""
     infobox += "{{Photograph \n"
@@ -149,15 +150,7 @@ def generate_infobox_template(item, places, img):
 
     infobox += "| depicted people    = " + img.data["depicted_people"] + "\n"
 
-    infobox += "| depicted place     = "
-    if item["Ort, foto"] in places:
-        if not places[item["Ort, foto"]]["wikidata"] == "-":
-            # print("item['Ort, foto']: {} places: {}".format(item["Ort, foto"], places[item["Ort, foto"]]["wikidata"]))
-            infobox += "{{city|1=" + places[item["Ort, foto"]]["wikidata"][2:] + "|link=wikidata}}"
-        else:
-            # print("item['Ort, foto']: {} places: {}".format(item["Ort, foto"], places[item["Ort, foto"]]["wikidata"]))
-            infobox += "{{city|1=" + places[item["Ort, foto"]]["commons"] + "|link=commons}}"
-    infobox += "\n"
+    infobox += "| depicted place     = " + img.data["depicted_place"] + "\n"
 
     infobox += "| date               = "
     if not item["Fotodatum"] == "":
@@ -207,11 +200,9 @@ def main():
     metadata_json = "SMVK-Cypern_2017-01_metadata.json"
     outpath = "./infofiles/"
 
+    # Hack to printout a wikitable to copy-paste to WikiCommons
     people = create_people_mapping_wikitable(people_mapping)
     # print(people + "\n")
-
-    places = load_places_mapping()
-    # print(places)
 
     metadata = load_json_metadata(metadata_json)
     for fotonr in metadata:
@@ -222,7 +213,7 @@ def main():
         print("New filename: {}".format(commons_filename))
 
         img = CypernImage()
-        infobox = generate_infobox_template(metadata[fotonr], places, img)
+        infobox = generate_infobox_template(metadata[fotonr], img)
 
 
         # print(infobox)
@@ -341,6 +332,43 @@ class CypernImage():
 
         return name_as_wikitext
 
+
+    def process_depicted_place(self, place_string, item):
+        """
+        Create wikiformat depicted place string from raw input data.
+        
+        Populates data["depicted_place"] and interacts with data["commonscat"] and data["meta_cats"].
+        
+        :param place_string: string value <Ort, foto> in metadata item.  
+        :return: None (output stored in object attribute
+        """
+        places_mapping = load_places_mapping()
+        # print(places_mapping)
+
+        name_as_wikitext = ""
+
+        if place_string == "":
+            self.data["depicted_place"] = ""
+            return
+
+        elif place_string in places_mapping:
+            if not places_mapping[item["Ort, foto"]]["wikidata"] == "-":
+                self.data["depicted_place"] = "{{city|1={wikidata}|link=wikidata}}".format(
+                    wikidata=places_mapping[item["Ort, foto"]]["wikidata"][2:]
+                )
+            else:
+                self.data["depicted_place"] = "{{city|1={commons}|link=commons}}".format(
+                    commons=places_mapping[item["Ort, foto"]]["commons"]
+                )
+
+        elif place_string == "Stockholm": # Mainly interiors from buildings gardens
+            self.content_cats.append("[[Media_contributed_by_SMVK_2017-02_taken_in_Stockholm]]")
+            self.data["depicted_place"] = ""
+
+        elif place_string == "Macheras": # No WP article, highly ambiguous
+            self.data["depicted_place"] = ""
+        else:
+            raise ValueError("ValueError: Not able to map <Ort, foto>: {}".format(place_string))
 
 if __name__ == '__main__':
     main()
