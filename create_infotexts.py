@@ -112,16 +112,15 @@ def create_smvk_mm_link(item):
     return smvk_link
 
 
-def generate_infobox_template(item, img):
+def generate_infobox_template(item, img, places_mapping):
     """Takes one item from metadata dictionary and constructs the infobox template.
     :param item: one metadata row for one photo
-    :param places: 
     :param img: a CypernImage object
     :returns: infobox for the item as a string
     """
     # run CypernImage processing
     img.process_depicted_people(item["Personnamn / avbildad"])
-    img.process_depicted_place(item["Ort, foto"], item) # 'item' is row including pre-processed wd and commons values
+    img.process_depicted_place(item["Ort, foto"], places_mapping) # 'item' is row including pre-processed wd and commons values
 
     infobox = ""
     infobox += "{{Photograph \n"
@@ -198,37 +197,50 @@ def main():
     :metadata_json: created with script `metadata_to_json_and_fnamesmap.py
     """
     metadata_json = "SMVK-Cypern_2017-01_metadata.json"
-    outpath = "./infofiles/"
+    outfile = open("./SMVK-Cypern_2017-02_wikiformat_data.json", "w")
 
     # Hack to printout a wikitable to copy-paste to WikiCommons
     people = create_people_mapping_wikitable(people_mapping)
     # print(people + "\n")
 
+    places_mapping = load_places_mapping()
+    # print(places_mapping)
+
     metadata = load_json_metadata(metadata_json)
+    batch_dict = {}
     for fotonr in metadata:
+        batch_dict[fotonr] = {}
+
         full_infotext = ""
-        outfile = open(outpath + fotonr + ".info", "w")
 
         commons_filename = create_commons_filename(metadata, fotonr)
         print("New filename: {}".format(commons_filename))
+        batch_dict[fotonr]["filename"] = commons_filename
 
         img = CypernImage()
-        infobox = generate_infobox_template(metadata[fotonr], img)
+        infobox = generate_infobox_template(metadata[fotonr], img, places_mapping)
+        batch_dict[fotonr]["infotext"] = infobox
 
+        content_cats = img.content_cats
+        content_cats_list = []
+        for cat in content_cats:
+            cat_as_wikitext = "[[Category:{cat}]]".format(cat=cat)
+            content_cats_list.append(cat_as_wikitext)
+        content_cats_str = "\n".join(content_cats_list)
+        batch_dict[fotonr]["content_cats"] = content_cats_str
 
-        # print(infobox)
-        full_infotext += infobox + "\n"
+        meta_cats = img.meta_cats
+        meta_cats_list = []
+        for cat in meta_cats:
+            cat_as_wikitext = "[[Category:{cat}]]".format(cat=cat)
+            meta_cats_list.append(cat_as_wikitext)
+        meta_cats_str = "\n".join(meta_cats_list)
+        batch_dict[fotonr]["meta_cats"] = meta_cats_str
 
-        # content_cats = generate_content_cats(metadata[fotonr])
-        # full_infotext += content_cats + "\n" # content cats can also be added by depicted persons
+        #print(infobox + "\n--------------\n")
 
-        # meta_cats = generate_meta_cats(metadata[fotonr])
-        # full_infotext += meta_cats
-
-        print(full_infotext + "\n--------------\n")
-        # outfile.write(infotext)
-        outfile.close()
-
+    outfile.write(json.dumps(batch_dict, ensure_ascii=False, indent=4))
+    outfile.close()
 
 class CypernImage():
     """Process the information for a single image."""
@@ -239,8 +251,7 @@ class CypernImage():
         self.meta_cats = []  # maintance categories without 'Category:'-prefix
         self.data = {}  # dictionary holding individual field values as wikitext
 
-        batch_cats = ["Swedish Cyprus Expedition|Swedish Cyprus Expedition",
-                      "Media_from_the_National_Museums_of_World_Culture",
+        batch_cats = ["Swedish Cyprus Expedition",
                       "Media_contributed_by_SMVK_2017-02"]
 
         self.meta_cats.extend(batch_cats)
@@ -260,7 +271,7 @@ class CypernImage():
         try:
             names = CypernImage.isolate_name(names_string)
         except ValueError:
-            self.meta_cats.append("Media_contributed_by_SMVK_2017-02_with_faulty_depicted_person_values")
+            self.meta_cats.append("Media_contributed_by_SMVK_with_faulty_depicted_person_values")
             self.data["depicted_people"] = names_string
             return
 
@@ -333,42 +344,49 @@ class CypernImage():
         return name_as_wikitext
 
 
-    def process_depicted_place(self, place_string, item):
+    def process_depicted_place(self, place_string, places_mapping):
         """
         Create wikiformat depicted place string from raw input data.
         
         Populates data["depicted_place"] and interacts with data["commonscat"] and data["meta_cats"].
         
-        :param place_string: string value <Ort, foto> in metadata item.  
+        :param place_string: string value <Ort, foto> in metadata item.
+        :param places_mapping: Dictionary containing Commons:Medelhavsmuseet/batchUploads/Cypern_places kw mappings
         :return: None (output stored in object attribute
         """
-        places_mapping = load_places_mapping()
-        # print(places_mapping)
-
-        name_as_wikitext = ""
-
-        if place_string == "":
+        place_as_wikitext = ""
+        if not place_string:
             self.data["depicted_place"] = ""
             return
 
-        elif place_string in places_mapping:
-            if not places_mapping[item["Ort, foto"]]["wikidata"] == "-":
-                self.data["depicted_place"] = "{{city|1={wikidata}|link=wikidata}}".format(
-                    wikidata=places_mapping[item["Ort, foto"]]["wikidata"][2:]
+        if place_string in places_mapping:
+            if not places_mapping[place_string]["wikidata"] == "-":
+                 place_as_wikitext = "{{city|1={wikidata}}}".format(
+                    wikidata=places_mapping[place_string]["wikidata"][2:]
                 )
+            elif place_string == "Stockholm":  # Mainly interiors from buildings gardens
+                self.meta_cats.append("[[Media_contributed_by_SMVK_taken_in_Stockholm]]")
+                self.data["depicted_place"] = ""
+
+            elif place_string == "Macheras":  # No WP article, highly ambiguous. Might refer to "Machairas Monestary"
+                self.meta_cats.append("Media_contributed_by_SMVK_possibly_depicting_Machairas_Monastary")
+                self.data["depicted_place"] = ""
+
+
+            elif not places_mapping[place_string]["commons"] == "-":
+                place_as_wikitext = "{{city|1={commons}}".format(
+                    commons=places_mapping[place_string]["commons"]
+                )
+
             else:
-                self.data["depicted_place"] = "{{city|1={commons}|link=commons}}".format(
-                    commons=places_mapping[item["Ort, foto"]]["commons"]
-                )
+                self.meta_cats.append("Media_contributed_by_SMVK_without_depicted_place_value")
+                self.data["depicted_place"] = ""
+                return
 
-        elif place_string == "Stockholm": # Mainly interiors from buildings gardens
-            self.content_cats.append("[[Media_contributed_by_SMVK_2017-02_taken_in_Stockholm]]")
-            self.data["depicted_place"] = ""
+        # Don't forget to add the commons categories, even though only wikidata is used in depicted people field
+        if "commons" in places_mapping[place_string].keys() and places_mapping[place_string]["commons"] != "-":
+            self.content_cats.append(places_mapping[place_string]["commons"])
 
-        elif place_string == "Macheras": # No WP article, highly ambiguous
-            self.data["depicted_place"] = ""
-        else:
-            raise ValueError("ValueError: Not able to map <Ort, foto>: {}".format(place_string))
-
+        self.data["depicted_place"] = place_as_wikitext
 if __name__ == '__main__':
     main()
