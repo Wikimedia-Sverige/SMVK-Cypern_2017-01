@@ -38,7 +38,6 @@ def load_places_mapping():
         places_dict[index] = {}
         places_dict[index]["commons"] = row["commons"]
         places_dict[index]["wikidata"] = row["wikidata"]
-    print(places_dict)
     return places_dict
 
 
@@ -211,28 +210,21 @@ def main():
     # print(places_mapping)
 
     metadata = load_json_metadata(metadata_json)
-    batch_dict = {}
+    batch_info = {}
     for fotonr in metadata:
-        print(fotonr)
-        batch_dict[fotonr] = {}
+        img_info = {}
 
         full_infotext = ""
 
         commons_filename = create_commons_filename(metadata, fotonr)
         #print("New filename: {}".format(commons_filename))
-        batch_dict[fotonr]["filename"] = commons_filename
+        img_info["filename"] = commons_filename
 
         img = CypernImage()
         infobox = generate_infobox_template(metadata[fotonr], img, places_mapping)
-        batch_dict[fotonr]["infotext"] = infobox
+        img_info["info"] = infobox
 
-        content_cats = img.content_cats
-        content_cats_list = []
-        for cat in content_cats:
-            cat_as_wikitext = "[[Category:{cat}]]".format(cat=cat)
-            content_cats_list.append(cat_as_wikitext)
-        content_cats_str = "\n".join(content_cats_list)
-        batch_dict[fotonr]["content_cats"] = content_cats_str
+        img_info["cats"] = img.content_cats
 
         meta_cats = img.meta_cats
         meta_cats_list = []
@@ -240,11 +232,12 @@ def main():
             cat_as_wikitext = "[[Category:{cat}]]".format(cat=cat)
             meta_cats_list.append(cat_as_wikitext)
         meta_cats_str = "\n".join(meta_cats_list)
-        batch_dict[fotonr]["meta_cats"] = meta_cats_str
+        img_info["meta_cats"] = meta_cats_str
 
         #print(infobox + "\n--------------\n")
+        batch_info[fotonr] = img_info
 
-    outfile.write(json.dumps(batch_dict, ensure_ascii=False, indent=4))
+    outfile.write(json.dumps(batch_info, ensure_ascii=False, indent=4))
     outfile.close()
 
 class CypernImage():
