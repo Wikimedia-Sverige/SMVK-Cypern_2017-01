@@ -239,7 +239,7 @@ class CypernImage():
 
     def __init__(self):
         """Instantiate a single instance of a processed image."""
-        self.content_cats = []  # content cateogories wihtout 'Category:'-prefix
+        self.content_cats = []  # content cateogories without 'Category:'-prefix
         self.meta_cats = []  # maintance categories without 'Category:'-prefix
         self.data = {}  # dictionary holding individual field values as wikitext
 
@@ -323,7 +323,7 @@ class CypernImage():
                 name=name_map["name"])
 
         elif "commonscat" in name_map.keys():
-            name_as_wikitext = "[[Category:{commonscat}|{name}]]".format(
+            name_as_wikitext = "[[:Category:{commonscat}|{name}]]".format(
                 commonscat=name_map["commonscat"],
                 name=name_map["name"])
 
@@ -374,7 +374,7 @@ class CypernImage():
                 place_as_wikitext = place_string
 
             # Don't forget to add the commons categories, even though only wikidata is used in depicted people field
-            if "commonscat" in places_mapping[place_string].keys() and places_mapping[place_string]:
+                if places_mapping[place_string].get('commonscat'):
                 self.content_cats.append(places_mapping[place_string]["commonscat"])
 
         else:
