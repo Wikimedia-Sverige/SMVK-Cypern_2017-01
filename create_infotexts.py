@@ -226,13 +226,7 @@ def main():
 
         img_info["cats"] = img.content_cats
 
-        meta_cats = img.meta_cats
-        meta_cats_list = []
-        for cat in meta_cats:
-            cat_as_wikitext = "[[Category:{cat}]]".format(cat=cat)
-            meta_cats_list.append(cat_as_wikitext)
-        meta_cats_str = "\n".join(meta_cats_list)
-        img_info["meta_cats"] = meta_cats_str
+        img_info["meta_cats"] = img.meta_cats
 
         #print(infobox + "\n--------------\n")
         batch_info[fotonr] = img_info
@@ -358,17 +352,19 @@ class CypernImage():
             return
 
         if place_string in places_mapping:
-            if place_string == "Stockholm":  # Mainly interiors from buildings gardens
-                # print("Stockholm in places_mapping{}".format(place_string))
+            if place_string == "Stockholm":
+                # Mainly interiors from buildings gardens
                 self.meta_cats.append("Media_contributed_by_SMVK_without_mapped_place_value")
+                self.meta_cats.append("Media_contributed_by_SMVK_taken_somewhere_in_Stockholm")
                 place_as_wikitext = "Stockholm"
 
-            elif place_string == "Macheras":  # No WP article, highly ambiguous. Might refer to "Machairas Monestary"
+            elif place_string == "Macheras":
+                # No WP article, highly ambiguous. Might refer to "Machairas Monestary"
                 self.meta_cats.append("Media_contributed_by_SMVK_without_mapped_place_value")
                 self.meta_cats.append("Media_contributed_by_SMVK_possibly_depicting_Machairas_Monastary")
                 place_as_wikitext = "Macheras"
 
-            elif places_mapping[place_string]["wikidata"] != "-":
+            elif places_mapping[place_string]["wikidata"]:
                 place_as_wikitext = "{{{{city|1={wikidata}}}}}".format(
                     wikidata=places_mapping[place_string]["wikidata"]
                 )
@@ -376,9 +372,7 @@ class CypernImage():
             else:
                 self.meta_cats.append("Media_contributed_by_SMVK_without_mapped_place_value")
                 place_as_wikitext = place_string
-        else:
-            self.meta_cats.append("Media_contributed_by_SMVK_without_depicted_place_value")
-            place_as_wikitext = place_string
+
 
         # Don't forget to add the commons categories, even though only wikidata is used in depicted people field
         if "commons" in places_mapping[place_string].keys() and places_mapping[place_string]["commons"] != "-":
