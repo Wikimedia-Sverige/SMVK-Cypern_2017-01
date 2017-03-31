@@ -372,6 +372,7 @@ class CypernImage():
                 place_as_wikitext = "{{{{city|1={wikidata}}}}}".format(
                     wikidata=places_mapping[place_string]["wikidata"]
                 )
+                self.data["depicted_place"] = place_as_wikitext
 
             else:
                 self.meta_cats.append("Media_contributed_by_SMVK_without_mapped_place_value")
@@ -383,8 +384,6 @@ class CypernImage():
         # Don't forget to add the commons categories, even though only wikidata is used in depicted people field
         if "commons" in places_mapping[place_string].keys() and places_mapping[place_string]["commons"] != "-":
             self.content_cats.append(places_mapping[place_string]["commons"])
-
-        self.data["depicted_place"] = place_as_wikitext
 
 
 if __name__ == '__main__':
