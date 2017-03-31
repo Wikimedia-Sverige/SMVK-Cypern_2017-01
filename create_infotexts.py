@@ -28,7 +28,7 @@ def load_places_mapping():
 
     places_df = places[0]  # read_html returns a list of found tables, each of which as a dataframe
     places_df = places_df.set_index("Nyckelord")
-    places_df.columns = ["freq", "commons", "wikidata"]
+    places_df.columns = ["freq", "commonscat", "wikidata"]
 
     places_df.replace("-", np.nan)
 
@@ -36,7 +36,7 @@ def load_places_mapping():
 
     for index, row in places_df.iterrows():
         places_dict[index] = {}
-        places_dict[index]["commons"] = row["commons"]
+        places_dict[index]["commonscat"] = row["commonscat"]
         places_dict[index]["wikidata"] = row["wikidata"]
     return places_dict
 
@@ -373,10 +373,14 @@ class CypernImage():
                 self.meta_cats.append("Media_contributed_by_SMVK_without_mapped_place_value")
                 place_as_wikitext = place_string
 
+            # Don't forget to add the commons categories, even though only wikidata is used in depicted people field
+            if "commonscat" in places_mapping[place_string].keys() and places_mapping[place_string]:
+                self.content_cats.append(places_mapping[place_string]["commonscat"])
 
-        # Don't forget to add the commons categories, even though only wikidata is used in depicted people field
-        if "commons" in places_mapping[place_string].keys() and places_mapping[place_string]["commons"] != "-":
-            self.content_cats.append(places_mapping[place_string]["commons"])
+        else:
+            self.meta_cats.append("Media_contributed_by_SMVK_without_mapped_place_value")
+            place_as_wikitext = place_string
+
 
         self.data["depicted_place"] = place_as_wikitext
 
