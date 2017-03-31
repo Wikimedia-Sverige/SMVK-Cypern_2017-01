@@ -361,22 +361,21 @@ class CypernImage():
             if place_string == "Stockholm":  # Mainly interiors from buildings gardens
                 # print("Stockholm in places_mapping{}".format(place_string))
                 self.meta_cats.append("Media_contributed_by_SMVK_without_mapped_place_value")
-                self.data["depicted_place"] = "Stockholm"
+                place_as_wikitext = "Stockholm"
 
             elif place_string == "Macheras":  # No WP article, highly ambiguous. Might refer to "Machairas Monestary"
                 self.meta_cats.append("Media_contributed_by_SMVK_without_mapped_place_value")
                 self.meta_cats.append("Media_contributed_by_SMVK_possibly_depicting_Machairas_Monastary")
-                self.data["depicted_place"] = "Macheras"
+                place_as_wikitext = "Macheras"
 
             elif places_mapping[place_string]["wikidata"] != "-":
                 place_as_wikitext = "{{{{city|1={wikidata}}}}}".format(
                     wikidata=places_mapping[place_string]["wikidata"]
                 )
-                self.data["depicted_place"] = place_as_wikitext
 
             else:
                 self.meta_cats.append("Media_contributed_by_SMVK_without_mapped_place_value")
-                self.data["depicted_place"] = place_string
+                place_as_wikitext = place_string
         else:
             self.meta_cats.append("Media_contributed_by_SMVK_without_depicted_place_value")
             place_as_wikitext = place_string
@@ -385,6 +384,7 @@ class CypernImage():
         if "commons" in places_mapping[place_string].keys() and places_mapping[place_string]["commons"] != "-":
             self.content_cats.append(places_mapping[place_string]["commons"])
 
+        self.data["depicted_place"] = place_as_wikitext
 
 if __name__ == '__main__':
     main()
