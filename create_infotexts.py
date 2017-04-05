@@ -114,6 +114,64 @@ def create_smvk_mm_link(item):
     return smvk_link
 
 
+def generate_list_of_stripped_keywords(keyword_string):
+    """
+    Transform string of keywords from column <Nyckelord> to list of keywords.
+    
+    :param keyword_string: String from column <Nyckelord.
+    :return: list of keywords.
+    """
+    keywords_list = keyword_string.split(", ")
+    if "Svenska Cypernexpeditionen" in keywords_list:
+        keywords_list.remove("Svenska Cypernexpeditionen")
+
+    return keywords_list
+
+def append_keywords_to_desc(description_str, kw_list):
+    """
+    Append a list of keywords to the existing <Beskrivning> field value.
+
+    :param item: dictionary containing the metadata for an image.
+    :param kw_list: list of keywords found in column <Nyckelord>.
+    :return: string representing concatenation of old <Beskrivning> plus keywords list.
+    """
+    newdesc = description_str + "\n"
+    newdesc += "**Nyckelord:**\n"
+
+    for kw in kw_list:
+        newdesc += kw + "\n"
+    return newdesc
+
+
+def process_keyword_addition_to_description(fotonr, description_str, keywords_list):
+    """
+    Append keywords to description, unless the only keyword is "Svenska Cypernexpeditionen". 
+    
+    :param fotonr: string representing the name of the image minus extension.
+    :param description_str: string respresenting the value of column <Beskrivning>.
+    :param keywords_str: string representing a comma-separated list of keywords.
+    :return: None (The altered description strings are returned in append_keywords_to_desc())
+    """
+    if keywords_list:
+        for kw in keywords_list:
+            if not kw.lower() in description_str.lower():
+                return  append_keywords_to_desc(description_str, keywords_list)
+            else:
+                return description_str
+    else:
+        return description_str
+
+def remove_svenska_cypernexpedition_from_description(description):
+    """
+    Remove the string "Svenska Cypernexpeditionen" from description, since it's in all descriptions.
+    
+    :param description: string containg the field value for column <Beskrivning> plus potential enrichments.
+    :return: String with "Svenska Cypernexpeditionen" removed.
+    """
+    new_string = re.sub(" Svenska Cypernexpeditionen\.?", "", description)
+
+    return new_string
+
 def generate_infobox_template(item, img, places_mapping):
     """Takes one item from metadata dictionary and constructs the infobox template.
     :param item: one metadata row for one photo
@@ -138,12 +196,18 @@ def generate_infobox_template(item, img, places_mapping):
 
     infobox += "| description        = {{sv| "
     if not item["Beskrivning"] == "":
-        # print("item['Beskrivning']: {}".format(item["Beskrivning"]))
-        cleaned_beskrivning = re.sub(" Svenska Cypernexpeditionen\.?", "", item["Beskrivning"])
-        infobox += cleaned_beskrivning
-        if not cleaned_beskrivning.endswith("."):
-            infobox += "."
-    infobox += " Svenska Cypernexpeditionen 1927-1931."
+        description = remove_svenska_cypernexpedition_from_description(item["Beskrivning"])
+
+        stripped_keywords = generate_list_of_stripped_keywords(item["Nyckelord"])
+
+        description_with_keywords = process_keyword_addition_to_description(item["Fotonummer"], description, stripped_keywords)
+
+        if description_with_keywords:
+            final_description = description_with_keywords  # prepare for additional enrichment steps
+            if not final_description.endswith("."):
+                final_description += "."
+            infobox += final_description
+
     if not item["Nyckelord"] == "" and not item["Nyckelord"] == "Svenska Cypernexpeditionen":
         infobox += "<br /> ''Nyckelord:''\n" + item["Nyckelord"]
     infobox += "}}\n"
