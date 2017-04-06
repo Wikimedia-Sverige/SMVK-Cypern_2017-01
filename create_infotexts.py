@@ -52,13 +52,17 @@ def create_commons_filename(metadata, fotonr):
     :return: string
     """
     if not metadata[fotonr]["Beskrivning"] == "":
-        cleaned_fname = helpers.format_filename(metadata[fotonr]["Beskrivning"], "SMVK-MM-Cypern",
-                                                metadata[fotonr]["Fotonummer"])
-        # print("Fname using BatchUploadTools: {}".format(cleaned_fname))
+        enriched_description = enrich_description(metadata[fotonr])
+        cleaned_fname = helpers.format_filename(enriched_description,
+                                                "SMVK-MM-Cypern",
+                                                metadata[fotonr]["Fotonummer"]
+                                                )
     else:
-        # TODO: Generate better descriptions, see https://phabricator.wikimedia.org/T158945
-        beskr = "Svenska Cypernexpeditionen 1927-1931"
-        cleaned_fname = helpers.format_filename(beskr, "SMVK-MM-Cypern", metadata[fotonr]["Fotonummer"])
+        # TODO: handle images without description https://phabricator.wikimedia.org/T162274
+        cleaned_fname = helpers.format_filename("Svenska Cypernexpeditionen 1927-1931",
+                                                "SMVK-MM-Cypern",
+                                                metadata[fotonr]["Fotonummer"]
+                                                )
 
     return cleaned_fname  # Assuming extension will be added på PrepUpload
 
@@ -189,6 +193,35 @@ def process_addition_of_region_to_description(description_str, region_str, count
 
     return newdesc
 
+def enrich_description(item):
+    """
+    Try to add keywords and regional information to description.
+    
+    :param item: dictionary containing metadata for one image.
+    :return: string representing altered or unaltered description.
+    """
+    description = remove_svenska_cypernexpedition_from_description(item["Beskrivning"])
+
+    if not description.endswith("."):
+        description += "."
+
+    stripped_keywords = generate_list_of_stripped_keywords(item["Nyckelord"])
+
+    # step 1 in enrichment process
+    description_with_region = process_addition_of_region_to_description(
+        description,
+        item["Region, foto"],
+        item["Land, foto"]
+    )
+
+    # step 2 in enrichment process
+    description_with_keywords = process_keyword_addition_to_description(
+        description_with_region,
+        stripped_keywords
+    )
+
+    return description_with_keywords
+
 def generate_infobox_template(item, img, places_mapping):
     """Takes one item from metadata dictionary and constructs the infobox template.
     :param item: one metadata row for one photo
@@ -214,27 +247,7 @@ def generate_infobox_template(item, img, places_mapping):
     infobox += "| description        = {{sv| "
 
     if not item["Beskrivning"] == "":
-        description = remove_svenska_cypernexpedition_from_description(item["Beskrivning"])
-
-        if not description.endswith("."):
-            description += "."
-
-        stripped_keywords = generate_list_of_stripped_keywords(item["Nyckelord"])
-
-        # step 1 in enrichment process
-        description_with_region = process_addition_of_region_to_description(
-            description,
-            item["Region, foto"],
-            item["Land, foto"]
-        )
-
-        # step 2 in enrichment process
-        description_with_keywords = process_keyword_addition_to_description(
-            description_with_region,
-            stripped_keywords
-            )
-
-        infobox += description_with_keywords
+        infobox += enrich_description(item)
     else:
         # TODO: Handle images with no description https://phabricator.wikimedia.org/T162274
         pass
