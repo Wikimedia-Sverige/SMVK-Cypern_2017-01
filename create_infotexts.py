@@ -17,7 +17,6 @@ import numpy as np
 people_mapping_file = open("./people_mappings.json")
 people_mapping = json.loads(people_mapping_file.read())
 
-
 def load_places_mapping():
     """
     Read wikitable html and return a dictionary
@@ -172,6 +171,20 @@ def remove_svenska_cypernexpedition_from_description(description):
 
     return new_string
 
+def process_addition_of_region_to_description(description_str, region_str):
+    """
+    Add <Region, foto> to description string, except when it is already present, with some smartness.
+    
+    :param description_str: String representing the processed/enriched description incl. <Nyckelord>.
+    :param region_str: The field value from column <Region ,foto> in metadata.
+    :return: String with possibly enriched description.
+    """
+    newdesc = description_str
+    if region_str != "":
+        newdesc += "\nRegion: " + region_str
+
+    return newdesc
+
 def generate_infobox_template(item, img, places_mapping):
     """Takes one item from metadata dictionary and constructs the infobox template.
     :param item: one metadata row for one photo
@@ -195,15 +208,27 @@ def generate_infobox_template(item, img, places_mapping):
     infobox += "| title               =\n"
 
     infobox += "| description        = {{sv| "
+
     if not item["Beskrivning"] == "":
         description = remove_svenska_cypernexpedition_from_description(item["Beskrivning"])
 
         stripped_keywords = generate_list_of_stripped_keywords(item["Nyckelord"])
 
-        description_with_keywords = process_keyword_addition_to_description(item["Fotonummer"], description, stripped_keywords)
+        # step 1 in enrichment process
+        description_with_region = process_addition_of_region_to_description(
+            description,
+            item["Region, foto"]
+        )
+
+        # step 2 in enrichment process
+        description_with_keywords = process_keyword_addition_to_description(
+            item["Fotonummer"],
+            description_with_region,
+            stripped_keywords
+            )
 
         if description_with_keywords:
-            final_description = description_with_keywords  # prepare for additional enrichment steps
+            final_description = description_with_keywords
             if not final_description.endswith("."):
                 final_description += "."
             infobox += final_description
