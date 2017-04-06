@@ -182,7 +182,7 @@ def process_addition_of_region_to_description(description_str, region_str, count
     """
     newdesc = description_str
     if region_str != "":
-        newdesc += "\n'''Region:'''\n " + region_str
+        newdesc += "\n'''Region:'''\n\n" + region_str
         if country_str != "":
             newdesc += ", " + country_str
         newdesc += "\n"
@@ -216,6 +216,9 @@ def generate_infobox_template(item, img, places_mapping):
     if not item["Beskrivning"] == "":
         description = remove_svenska_cypernexpedition_from_description(item["Beskrivning"])
 
+        if not description.endswith("."):
+            description += "."
+
         stripped_keywords = generate_list_of_stripped_keywords(item["Nyckelord"])
 
         # step 1 in enrichment process
@@ -231,11 +234,10 @@ def generate_infobox_template(item, img, places_mapping):
             stripped_keywords
             )
 
-        if description_with_keywords:
-            final_description = description_with_keywords
-            if not final_description.endswith("."):
-                final_description += "."
-            infobox += final_description
+        infobox += description_with_keywords
+    else:
+        # TODO: Handle images with no description https://phabricator.wikimedia.org/T162274
+        pass
 
     infobox += "}}\n"
     infobox += "{{en|The Swedish Cyprus expedition 1927-1931}}"
