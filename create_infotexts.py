@@ -171,17 +171,21 @@ def remove_svenska_cypernexpedition_from_description(description):
 
     return new_string
 
-def process_addition_of_region_to_description(description_str, region_str):
+def process_addition_of_region_to_description(description_str, region_str, country_str):
     """
     Add <Region, foto> to description string, except when it is already present, with some smartness.
     
     :param description_str: String representing the processed/enriched description incl. <Nyckelord>.
-    :param region_str: The field value from column <Region ,foto> in metadata.
+    :param region_str: String with the field value from column <Region ,foto> in metadata.
+    :param country_str: String with the field value from column <Land> in metadata. 
     :return: String with possibly enriched description.
     """
     newdesc = description_str
     if region_str != "":
         newdesc += "\nRegion: " + region_str
+        if country_str != "":
+            newdesc += ", " + country_str
+        newdesc += "\n"
 
     return newdesc
 
@@ -217,7 +221,8 @@ def generate_infobox_template(item, img, places_mapping):
         # step 1 in enrichment process
         description_with_region = process_addition_of_region_to_description(
             description,
-            item["Region, foto"]
+            item["Region, foto"],
+            item["Land, foto"]
         )
 
         # step 2 in enrichment process
@@ -234,6 +239,7 @@ def generate_infobox_template(item, img, places_mapping):
 
     if not item["Nyckelord"] == "" and not item["Nyckelord"] == "Svenska Cypernexpeditionen":
         infobox += "<br /> ''Nyckelord:''\n" + item["Nyckelord"]
+
     infobox += "}}\n"
     infobox += "{{en|The Swedish Cyprus expedition 1927-1931}}"
     infobox += "\n"
