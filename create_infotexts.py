@@ -135,7 +135,7 @@ def append_keywords_to_desc(description_str, kw_list):
     :return: string representing concatenation of old <Beskrivning> plus keywords list.
     """
     newdesc = description_str + "\n"
-    newdesc += "**Nyckelord:**\n"
+    newdesc += "'''Nyckelord:'''\n"
 
     for kw in kw_list:
         newdesc += kw + "\n"
@@ -182,7 +182,7 @@ def process_addition_of_region_to_description(description_str, region_str, count
     """
     newdesc = description_str
     if region_str != "":
-        newdesc += "\nRegion: " + region_str
+        newdesc += "\n'''Region:'''\n " + region_str
         if country_str != "":
             newdesc += ", " + country_str
         newdesc += "\n"
