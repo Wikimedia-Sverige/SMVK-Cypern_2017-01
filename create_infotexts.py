@@ -237,9 +237,6 @@ def generate_infobox_template(item, img, places_mapping):
                 final_description += "."
             infobox += final_description
 
-    if not item["Nyckelord"] == "" and not item["Nyckelord"] == "Svenska Cypernexpeditionen":
-        infobox += "<br /> ''Nyckelord:''\n" + item["Nyckelord"]
-
     infobox += "}}\n"
     infobox += "{{en|The Swedish Cyprus expedition 1927-1931}}"
     infobox += "\n"
