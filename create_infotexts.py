@@ -142,7 +142,7 @@ def append_keywords_to_desc(description_str, kw_list):
     return newdesc
 
 
-def process_keyword_addition_to_description(fotonr, description_str, keywords_list):
+def process_keyword_addition_to_description(description_str, keywords_list):
     """
     Append keywords to description, unless the only keyword is "Svenska Cypernexpeditionen". 
     
@@ -222,7 +222,6 @@ def generate_infobox_template(item, img, places_mapping):
 
         # step 2 in enrichment process
         description_with_keywords = process_keyword_addition_to_description(
-            item["Fotonummer"],
             description_with_region,
             stripped_keywords
             )
