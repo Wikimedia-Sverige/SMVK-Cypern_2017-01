@@ -51,18 +51,12 @@ def create_commons_filename(metadata, fotonr):
     :param fotonr: string representing the <Fotonummer> field in the metadata
     :return: string
     """
-    if not metadata[fotonr]["Beskrivning"] == "":
-        enriched_description = enrich_description(metadata[fotonr])
-        cleaned_fname = helpers.format_filename(enriched_description,
-                                                "SMVK-MM-Cypern",
-                                                metadata[fotonr]["Fotonummer"]
-                                                )
-    else:
-        # TODO: handle images without description https://phabricator.wikimedia.org/T162274
-        cleaned_fname = helpers.format_filename("Svenska Cypernexpeditionen 1927-1931",
-                                                "SMVK-MM-Cypern",
-                                                metadata[fotonr]["Fotonummer"]
-                                                )
+    # TODO: handle images without description https://phabricator.wikimedia.org/T162274
+    enriched_description = enrich_description(metadata[fotonr])
+    cleaned_fname = helpers.format_filename(enriched_description,
+                                            "SMVK-MM-Cypern",
+                                            metadata[fotonr]["Fotonummer"]
+                                            )
 
     return cleaned_fname  # Assuming extension will be added på PrepUpload
 
