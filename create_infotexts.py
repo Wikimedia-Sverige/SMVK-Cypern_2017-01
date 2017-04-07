@@ -17,6 +17,7 @@ import numpy as np
 people_mapping_file = open("./people_mappings.json")
 people_mapping = json.loads(people_mapping_file.read())
 
+
 def load_places_mapping():
     """
     Read wikitable html and return a dictionary
@@ -202,8 +203,7 @@ def main():
     outfile = open("./SMVK-Cypern_2017-02_wikiformat_data.json", "w")
 
     # Hack to printout a wikitable to copy-paste to WikiCommons
-    people = create_people_mapping_wikitable(people_mapping)
-    # print(people + "\n")
+    # people = create_people_mapping_wikitable(people_mapping)
 
     places_mapping = load_places_mapping()
     # print(places_mapping)
@@ -213,27 +213,25 @@ def main():
     for fotonr in metadata:
         img_info = {}
 
-        full_infotext = ""
-
         commons_filename = create_commons_filename(metadata, fotonr)
-        #print("New filename: {}".format(commons_filename))
+
         img_info["filename"] = commons_filename
 
         img = CypernImage()
         infobox = generate_infobox_template(metadata[fotonr], img, places_mapping)
         img_info["info"] = infobox
 
-        img_info["cats"] = img.content_cats
+        img_info["cats"] = list(set(img.content_cats))
 
-        img_info["meta_cats"] = img.meta_cats
+        img_info["meta_cats"] = list(set(img.meta_cats))
 
-        #print(infobox + "\n--------------\n")
         batch_info[fotonr] = img_info
 
     outfile.write(json.dumps(batch_info, ensure_ascii=False, indent=4))
     outfile.close()
 
-class CypernImage():
+
+class CypernImage:
     """Process the information for a single image."""
 
     def __init__(self):
@@ -246,7 +244,6 @@ class CypernImage():
                       "Media_contributed_by_SMVK_2017-02"]
 
         self.meta_cats.extend(batch_cats)
-
 
     def process_depicted_people(self, names_string):
         """
@@ -271,8 +268,6 @@ class CypernImage():
             wikitext_names.append(self.select_best_mapping_for_depicted_person(name))
 
         self.data["depicted_people"] = "/".join(wikitext_names)
-
-
 
     @staticmethod
     def isolate_name(names_string):
@@ -334,7 +329,6 @@ class CypernImage():
 
         return name_as_wikitext
 
-
     def process_depicted_place(self, place_string, places_mapping, desc_string):
         """
         Create wikiformat depicted place string from raw input data.
@@ -343,7 +337,7 @@ class CypernImage():
         
         :param place_string: string value <Ort, foto> in metadata item.
         :param places_mapping: Dictionary containing Commons:Medelhavsmuseet/batchUploads/Cypern_places
-        :param desc_string: string representing an image items field <Beskrivning>.
+        :param desc_string: string value <Beskrivning> in metadata item.
         :return: None (output stored in object attribute
         """
         place_as_wikitext = ""
@@ -375,41 +369,28 @@ class CypernImage():
                 place_as_wikitext = place_string
 
             # Don't forget to add the commons categories, even though only wikidata is used in depicted people field
-            if places_mapping[place_string].get('commonscat') and \
-            places_mapping[place_string].get('commonscat') != "-" and \
-            places_mapping[place_string].get('commonscat') not in self.content_cats:
-
+            if places_mapping[place_string].get('commonscat'):
                 self.content_cats.append(places_mapping[place_string]["commonscat"])
 
         else:
-            self.meta_cats.append("Media_contributed_by_SMVK_without_mapped_place_value")
-            place_as_wikitext = place_string
+            for place in places_mapping:
+                if place.lower() in desc_string.lower():
 
-
-        for place in places_mapping:
-            if place.lower() in desc_string.lower():
-
-                if places_mapping[place]["wikidata"] and places_mapping[place]["wikidata"] != "-":
-                    if place_as_wikitext: # There is already a depicted place found in field <Ort, foto>
-                        place_as_wikitext += "/{{{{city|1={wikidata}}}}}".format(
-                            wikidata=places_mapping[place]["wikidata"]
-                            )
-                    else:
+                    if places_mapping[place]["wikidata"]:
                         place_as_wikitext = "{{{{city|1={wikidata}}}}}".format(
                             wikidata=places_mapping[place]["wikidata"]
                             )
 
-                else:
-                    if place_as_wikitext:
-                        place_as_wikitext += "/{}".format(place)
                     else:
                         place_as_wikitext = place
 
-                # Don't forget to add the commons categories, even though only wikidata is used in depicted people field
-                if places_mapping[place].get('commonscat') and \
-                    places_mapping[place].get('commonscat') != "-" and \
-                    places_mapping[place].get('commonscat') not in self.content_cats:
-                    self.content_cats.append(places_mapping[place]["commonscat"])
+                    # Don't forget to add the commons categories if present.
+                    if places_mapping[place].get('commonscat'):
+                        self.content_cats.append(places_mapping[place]["commonscat"])
+
+                else:
+                    self.meta_cats.append("Media_contributed_by_SMVK_without_mapped_place_value")
+                    # TODO: Handle images without depicted place value
 
         self.data["depicted_place"] = place_as_wikitext
         return place_as_wikitext
