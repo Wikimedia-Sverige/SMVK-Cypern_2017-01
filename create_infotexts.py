@@ -480,11 +480,11 @@ class CypernImage():
         :return: string representing concatenation of old <Beskrivning> plus keywords list.
         """
         newdesc = description_str + "\n"
-        newdesc += "'''Nyckelord:'''\n"
+        newdesc += "''Nyckelord:'' "
 
         for kw in kw_list:
-            newdesc += kw + "\n"
-        return newdesc
+            newdesc += kw + ", "
+        return newdesc.rstrip(", ")
 
 
 if __name__ == '__main__':
