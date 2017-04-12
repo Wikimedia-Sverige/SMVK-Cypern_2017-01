@@ -128,24 +128,6 @@ def append_keywords_to_desc(description_str, kw_list):
     return newdesc
 
 
-def process_keyword_addition_to_description(description_str, keywords_list):
-    """
-    Append keywords to description, unless the only keyword is "Svenska Cypernexpeditionen". 
-    
-    :param fotonr: string representing the name of the image minus extension.
-    :param description_str: string respresenting the value of column <Beskrivning>.
-    :param keywords_str: string representing a comma-separated list of keywords.
-    :return: None (The altered description strings are returned in append_keywords_to_desc())
-    """
-    if keywords_list:
-        for kw in keywords_list:
-            if not kw.lower() in description_str.lower():
-                return  append_keywords_to_desc(description_str, keywords_list)
-            else:
-                return description_str
-    else:
-        return description_str
-
 def remove_svenska_cypernexpedition_from_description(description):
     """
     Remove the string "Svenska Cypernexpeditionen" from description, since it's in all descriptions.
@@ -458,6 +440,7 @@ class CypernImage():
 
         self.data["Nyckelord"] = keywords_list
 
+
     def enrich_description_field(self, item):
         """
         Try to add keywords and regional information to description.
@@ -480,12 +463,29 @@ class CypernImage():
         )
 
         # step 2 in enrichment process
-        description_with_keywords = process_keyword_addition_to_description(
-            description_with_region,
-            stripped_keywords
+        description_with_keywords = self.process_keyword_addition_to_description(
+            description_with_region
         )
 
         self.data["enriched_description"] = description_with_keywords
+
+    def process_keyword_addition_to_description(self, description_str):
+        """
+        Append keywords to description, unless the only keyword is "Svenska Cypernexpeditionen". 
+
+        :param fotonr: string representing the name of the image minus extension.
+        :param description_str: string respresenting the value of column <Beskrivning>.
+        :param keywords_str: string representing a comma-separated list of keywords.
+        :return: None (The altered description strings are returned in append_keywords_to_desc())
+        """
+        if self.data["Nyckelord"]:
+            for kw in self.data["Nyckelord"]:
+                if not kw.lower() in description_str.lower():
+                    return append_keywords_to_desc(description_str, self.data["Nyckelord"])
+                else:
+                    return description_str
+        else:
+            return description_str
 
 
 if __name__ == '__main__':
