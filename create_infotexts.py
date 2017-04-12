@@ -112,18 +112,6 @@ def create_smvk_mm_link(item):
     return smvk_link
 
 
-def remove_svenska_cypernexpedition_from_description(description):
-    """
-    Remove the string "Svenska Cypernexpeditionen" from description, since it's in all descriptions.
-    
-    :param description: string containg the field value for column <Beskrivning> plus potential enrichments.
-    :return: String with "Svenska Cypernexpeditionen" removed.
-    """
-    new_string = re.sub(" Svenska Cypernexpeditionen\.?", "", description)
-
-    return new_string
-
-
 def generate_infobox_template(item, img, places_mapping):
     """Takes one item from metadata dictionary and constructs the infobox template.
     :param item: one metadata row for one photo
@@ -406,6 +394,18 @@ class CypernImage():
 
         self.data["Nyckelord"] = keywords_list
 
+    @staticmethod
+    def remove_svenska_cypernexpedition_from_description(description):
+        """
+        Remove the string "Svenska Cypernexpeditionen" from description, since it's in all descriptions.
+
+        :param description: string containg the field value for column <Beskrivning> plus potential enrichments.
+        :return: String with "Svenska Cypernexpeditionen" removed.
+        """
+        new_string = re.sub(" Svenska Cypernexpeditionen\.?", "", description)
+
+        return new_string
+
 
     def enrich_description_field(self, item):
         """
@@ -414,7 +414,7 @@ class CypernImage():
         :param item: dictionary containing metadata for one image.
         :return: string representing altered or unaltered description.
         """
-        description = remove_svenska_cypernexpedition_from_description(item["Beskrivning"])
+        description = self.remove_svenska_cypernexpedition_from_description(item["Beskrivning"])
 
         if not description.endswith("."):
             description += "."
