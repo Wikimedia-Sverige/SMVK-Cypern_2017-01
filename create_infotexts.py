@@ -434,8 +434,9 @@ class CypernImage():
         )
 
         # Step 3 in enrichment process
-        batch_description = " Svenska Cypernexpeditionen 1927-1931."
-        full_description = description_with_keywords + batch_description
+
+        batch_description = ". Svenska Cypernexpeditionen 1927-1931."
+        full_description = description_with_keywords.rstrip(".") + batch_description
 
         self.data["enriched_description"] = full_description
 
@@ -465,8 +466,8 @@ class CypernImage():
         :param kw_list: list of keywords found in column <Nyckelord>.
         :return: string representing concatenation of old <Beskrivning> plus keywords list.
         """
-        newdesc = description_str + "\n"
-        newdesc += "''Nyckelord:'' "
+        newdesc = description_str
+        newdesc += " ''Nyckelord:'' "
 
         for kw in kw_list:
             newdesc += kw + ", "
@@ -482,11 +483,10 @@ class CypernImage():
         :return: String with possibly enriched description.
         """
         newdesc = description_str
-        if region_str != "":
-            newdesc += "\n'''Region:'''\n\n" + region_str
-            if country_str != "":
+        if region_str:
+            newdesc += " ''Region:'' " + region_str
+            if country_str:
                 newdesc += ", " + country_str
-            newdesc += "\n"
 
         return newdesc
 
