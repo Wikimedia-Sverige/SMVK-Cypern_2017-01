@@ -112,22 +112,6 @@ def create_smvk_mm_link(item):
     return smvk_link
 
 
-def append_keywords_to_desc(description_str, kw_list):
-    """
-    Append a list of keywords to the existing <Beskrivning> field value.
-
-    :param item: dictionary containing the metadata for an image.
-    :param kw_list: list of keywords found in column <Nyckelord>.
-    :return: string representing concatenation of old <Beskrivning> plus keywords list.
-    """
-    newdesc = description_str + "\n"
-    newdesc += "'''Nyckelord:'''\n"
-
-    for kw in kw_list:
-        newdesc += kw + "\n"
-    return newdesc
-
-
 def remove_svenska_cypernexpedition_from_description(description):
     """
     Remove the string "Svenska Cypernexpeditionen" from description, since it's in all descriptions.
@@ -481,11 +465,26 @@ class CypernImage():
         if self.data["Nyckelord"]:
             for kw in self.data["Nyckelord"]:
                 if not kw.lower() in description_str.lower():
-                    return append_keywords_to_desc(description_str, self.data["Nyckelord"])
+                    return self.append_keywords_to_desc(description_str, self.data["Nyckelord"])
                 else:
                     return description_str
         else:
             return description_str
+
+    def append_keywords_to_desc(self, description_str, kw_list):
+        """
+        Append a list of keywords to the existing <Beskrivning> field value.
+
+        :param item: dictionary containing the metadata for an image.
+        :param kw_list: list of keywords found in column <Nyckelord>.
+        :return: string representing concatenation of old <Beskrivning> plus keywords list.
+        """
+        newdesc = description_str + "\n"
+        newdesc += "'''Nyckelord:'''\n"
+
+        for kw in kw_list:
+            newdesc += kw + "\n"
+        return newdesc
 
 
 if __name__ == '__main__':
