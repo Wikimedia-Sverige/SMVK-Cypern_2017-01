@@ -122,7 +122,9 @@ def generate_infobox_template(item, img, places_mapping):
     # run CypernImage processing
     img.process_depicted_people(item["Personnamn / avbildad"])
     img.process_depicted_place(item["Ort, foto"], places_mapping)
+    img.generate_list_of_stripped_keywords(item["Nyckelord"])
     img.enrich_description_field(item)
+
 
     infobox = ""
     infobox += "{{Photograph \n"
@@ -419,8 +421,6 @@ class CypernImage():
         if not description.endswith("."):
             description += "."
 
-        stripped_keywords = self.generate_list_of_stripped_keywords(item["Nyckelord"])
-
         # step 1 in enrichment process
         description_with_region = self.process_region_addition_to_description(
             description,
@@ -433,7 +433,11 @@ class CypernImage():
             description_with_region
         )
 
-        self.data["enriched_description"] = description_with_keywords
+        # Step 3 in enrichment process
+        batch_description = " Svenska Cypernexpeditionen 1927-1931."
+        full_description = description_with_keywords + batch_description
+
+        self.data["enriched_description"] = full_description
 
     def process_keyword_addition_to_description(self, description_str):
         """
