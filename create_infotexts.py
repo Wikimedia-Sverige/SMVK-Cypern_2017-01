@@ -52,13 +52,14 @@ def create_commons_filename(metadata, fotonr):
     :return: string
     """
     # TODO: handle images without description https://phabricator.wikimedia.org/T162274
-    enriched_description = enrich_description(metadata[fotonr])
-    cleaned_fname = helpers.format_filename(enriched_description,
-                                            "SMVK-MM-Cypern",
-                                            metadata[fotonr]["Fotonummer"]
-                                            )
+    #enriched_description = enrich_description_for_filename(metadata[fotonr])
+    #cleaned_fname = helpers.format_filename(enriched_description,
+    #                                        "SMVK-MM-Cypern",
+    #                                        metadata[fotonr]["Fotonummer"]
+    #                                        )
 
-    return cleaned_fname  # Assuming extension will be added på PrepUpload
+    #return cleaned_fname  # Assuming extension will be added på PrepUpload
+    pass
 
 
 def load_json_metadata(infile):
@@ -110,19 +111,6 @@ def create_smvk_mm_link(item):
 
     return smvk_link
 
-
-def generate_list_of_stripped_keywords(keyword_string):
-    """
-    Transform string of keywords from column <Nyckelord> to list of keywords.
-    
-    :param keyword_string: String from column <Nyckelord.
-    :return: list of keywords.
-    """
-    keywords_list = keyword_string.split(", ")
-    if "Svenska Cypernexpeditionen" in keywords_list:
-        keywords_list.remove("Svenska Cypernexpeditionen")
-
-    return keywords_list
 
 def append_keywords_to_desc(description_str, kw_list):
     """
@@ -187,34 +175,6 @@ def process_addition_of_region_to_description(description_str, region_str, count
 
     return newdesc
 
-def enrich_description(item):
-    """
-    Try to add keywords and regional information to description.
-    
-    :param item: dictionary containing metadata for one image.
-    :return: string representing altered or unaltered description.
-    """
-    description = remove_svenska_cypernexpedition_from_description(item["Beskrivning"])
-
-    if not description.endswith("."):
-        description += "."
-
-    stripped_keywords = generate_list_of_stripped_keywords(item["Nyckelord"])
-
-    # step 1 in enrichment process
-    description_with_region = process_addition_of_region_to_description(
-        description,
-        item["Region, foto"],
-        item["Land, foto"]
-    )
-
-    # step 2 in enrichment process
-    description_with_keywords = process_keyword_addition_to_description(
-        description_with_region,
-        stripped_keywords
-    )
-
-    return description_with_keywords
 
 def generate_infobox_template(item, img, places_mapping):
     """Takes one item from metadata dictionary and constructs the infobox template.
@@ -226,6 +186,7 @@ def generate_infobox_template(item, img, places_mapping):
     # run CypernImage processing
     img.process_depicted_people(item["Personnamn / avbildad"])
     img.process_depicted_place(item["Ort, foto"], places_mapping)
+    img.enrich_description_field(item)
 
     infobox = ""
     infobox += "{{Photograph \n"
@@ -241,7 +202,7 @@ def generate_infobox_template(item, img, places_mapping):
     infobox += "| description        = {{sv| "
 
     if not item["Beskrivning"] == "":
-        infobox += enrich_description(item)
+        infobox += img.data["enriched_description"]
     else:
         # TODO: Handle images with no description https://phabricator.wikimedia.org/T162274
         pass
@@ -483,6 +444,48 @@ class CypernImage():
 
 
         self.data["depicted_place"] = place_as_wikitext
+
+    def generate_list_of_stripped_keywords(self, keyword_string):
+        """
+        Transform string of keywords from column <Nyckelord> to list of keywords.
+
+        :param keyword_string: String from column <Nyckelord.
+        :return: list of keywords.
+        """
+        keywords_list = keyword_string.split(", ")
+        if "Svenska Cypernexpeditionen" in keywords_list:
+            keywords_list.remove("Svenska Cypernexpeditionen")
+
+        self.data["Nyckelord"] = keywords_list
+
+    def enrich_description_field(self, item):
+        """
+        Try to add keywords and regional information to description.
+
+        :param item: dictionary containing metadata for one image.
+        :return: string representing altered or unaltered description.
+        """
+        description = remove_svenska_cypernexpedition_from_description(item["Beskrivning"])
+
+        if not description.endswith("."):
+            description += "."
+
+        stripped_keywords = self.generate_list_of_stripped_keywords(item["Nyckelord"])
+
+        # step 1 in enrichment process
+        description_with_region = process_addition_of_region_to_description(
+            description,
+            item["Region, foto"],
+            item["Land, foto"]
+        )
+
+        # step 2 in enrichment process
+        description_with_keywords = process_keyword_addition_to_description(
+            description_with_region,
+            stripped_keywords
+        )
+
+        self.data["enriched_description"] = description_with_keywords
 
 
 if __name__ == '__main__':
