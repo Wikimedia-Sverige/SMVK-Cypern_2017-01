@@ -17,6 +17,7 @@ import numpy as np
 people_mapping_file = open("./people_mappings.json")
 people_mapping = json.loads(people_mapping_file.read())
 
+
 def load_places_mapping():
     """
     Read wikitable html and return a dictionary
@@ -52,13 +53,13 @@ def create_commons_filename(metadata, fotonr):
     :return: string
     """
     # TODO: handle images without description https://phabricator.wikimedia.org/T162274
-    #enriched_description = enrich_description_for_filename(metadata[fotonr])
-    #cleaned_fname = helpers.format_filename(enriched_description,
+    # enriched_description = enrich_description_for_filename(metadata[fotonr])
+    # cleaned_fname = helpers.format_filename(enriched_description,
     #                                        "SMVK-MM-Cypern",
     #                                        metadata[fotonr]["Fotonummer"]
     #                                        )
 
-    #return cleaned_fname  # Assuming extension will be added på PrepUpload
+    # return cleaned_fname  # Assuming extension will be added på PrepUpload
     pass
 
 
@@ -124,7 +125,6 @@ def generate_infobox_template(item, img, places_mapping):
     img.process_depicted_place(item["Ort, foto"], places_mapping)
     img.generate_list_of_stripped_keywords(item["Nyckelord"])
     img.enrich_description_field(item)
-
 
     infobox = ""
     infobox += "{{Photograph \n"
@@ -213,10 +213,8 @@ def main():
     for fotonr in metadata:
         img_info = {}
 
-        full_infotext = ""
-
         commons_filename = create_commons_filename(metadata, fotonr)
-        #print("New filename: {}".format(commons_filename))
+
         img_info["filename"] = commons_filename
 
         img = CypernImage()
@@ -227,13 +225,13 @@ def main():
 
         img_info["meta_cats"] = img.meta_cats
 
-        #print(infobox + "\n--------------\n")
         batch_info[fotonr] = img_info
 
     outfile.write(json.dumps(batch_info, ensure_ascii=False, indent=4))
     outfile.close()
 
-class CypernImage():
+
+class CypernImage:
     """Process the information for a single image."""
 
     def __init__(self):
@@ -246,7 +244,6 @@ class CypernImage():
                       "Media_contributed_by_SMVK_2017-02"]
 
         self.meta_cats.extend(batch_cats)
-
 
     def process_depicted_people(self, names_string):
         """
@@ -271,8 +268,6 @@ class CypernImage():
             wikitext_names.append(self.select_best_mapping_for_depicted_person(name))
 
         self.data["depicted_people"] = "/".join(wikitext_names)
-
-
 
     @staticmethod
     def isolate_name(names_string):
@@ -334,7 +329,6 @@ class CypernImage():
 
         return name_as_wikitext
 
-
     def process_depicted_place(self, place_string, places_mapping):
         """
         Create wikiformat depicted place string from raw input data.
@@ -380,7 +374,6 @@ class CypernImage():
             self.meta_cats.append("Media_contributed_by_SMVK_without_mapped_place_value")
             place_as_wikitext = place_string
 
-
         self.data["depicted_place"] = place_as_wikitext
 
     def generate_list_of_stripped_keywords(self, keyword_string):
@@ -407,7 +400,6 @@ class CypernImage():
         new_string = re.sub(" Svenska Cypernexpeditionen\.?", "", description)
 
         return new_string
-
 
     def enrich_description_field(self, item):
         """
@@ -444,10 +436,8 @@ class CypernImage():
         """
         Append keywords to description, unless the only keyword is "Svenska Cypernexpeditionen". 
 
-        :param fotonr: string representing the name of the image minus extension.
         :param description_str: string respresenting the value of column <Beskrivning>.
-        :param keywords_str: string representing a comma-separated list of keywords.
-        :return: None (The altered description strings are returned in append_keywords_to_desc())
+        :return: string with added keywords, if existing 
         """
         if self.data["Nyckelord"]:
             for kw in self.data["Nyckelord"]:
@@ -458,12 +448,13 @@ class CypernImage():
         else:
             return description_str
 
-    def append_keywords_to_desc(self, description_str, kw_list):
+    @staticmethod
+    def append_keywords_to_desc(description_str, kw_list):
         """
         Append a list of keywords to the existing <Beskrivning> field value.
 
-        :param item: dictionary containing the metadata for an image.
-        :param kw_list: list of keywords found in column <Nyckelord>.
+        :param description_str: string representing column <Beskrivning> in metadata.
+        :param kw_list: preprocessed list of keywords found in column <Nyckelord>.
         :return: string representing concatenation of old <Beskrivning> plus keywords list.
         """
         newdesc = description_str
@@ -473,7 +464,8 @@ class CypernImage():
             newdesc += kw + ", "
         return newdesc.rstrip(", ")
 
-    def process_region_addition_to_description(self, description_str, region_str, country_str):
+    @staticmethod
+    def process_region_addition_to_description(description_str, region_str, country_str):
         """
         Add <Region, foto> to description string, except when it is already present, with some smartness.
 
