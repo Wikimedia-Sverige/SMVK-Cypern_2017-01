@@ -123,24 +123,6 @@ def remove_svenska_cypernexpedition_from_description(description):
 
     return new_string
 
-def process_addition_of_region_to_description(description_str, region_str, country_str):
-    """
-    Add <Region, foto> to description string, except when it is already present, with some smartness.
-    
-    :param description_str: String representing the processed/enriched description incl. <Nyckelord>.
-    :param region_str: String with the field value from column <Region ,foto> in metadata.
-    :param country_str: String with the field value from column <Land> in metadata. 
-    :return: String with possibly enriched description.
-    """
-    newdesc = description_str
-    if region_str != "":
-        newdesc += "\n'''Region:'''\n\n" + region_str
-        if country_str != "":
-            newdesc += ", " + country_str
-        newdesc += "\n"
-
-    return newdesc
-
 
 def generate_infobox_template(item, img, places_mapping):
     """Takes one item from metadata dictionary and constructs the infobox template.
@@ -440,7 +422,7 @@ class CypernImage():
         stripped_keywords = self.generate_list_of_stripped_keywords(item["Nyckelord"])
 
         # step 1 in enrichment process
-        description_with_region = process_addition_of_region_to_description(
+        description_with_region = self.process_addition_of_region_to_description(
             description,
             item["Region, foto"],
             item["Land, foto"]
@@ -485,6 +467,24 @@ class CypernImage():
         for kw in kw_list:
             newdesc += kw + ", "
         return newdesc.rstrip(", ")
+
+    def process_addition_of_region_to_description(self, description_str, region_str, country_str):
+        """
+        Add <Region, foto> to description string, except when it is already present, with some smartness.
+
+        :param description_str: String representing the processed/enriched description incl. <Nyckelord>.
+        :param region_str: String with the field value from column <Region ,foto> in metadata.
+        :param country_str: String with the field value from column <Land> in metadata. 
+        :return: String with possibly enriched description.
+        """
+        newdesc = description_str
+        if region_str != "":
+            newdesc += "\n'''Region:'''\n\n" + region_str
+            if country_str != "":
+                newdesc += ", " + country_str
+            newdesc += "\n"
+
+        return newdesc
 
 
 if __name__ == '__main__':
