@@ -422,7 +422,7 @@ class CypernImage():
         stripped_keywords = self.generate_list_of_stripped_keywords(item["Nyckelord"])
 
         # step 1 in enrichment process
-        description_with_region = self.process_addition_of_region_to_description(
+        description_with_region = self.process_region_addition_to_description(
             description,
             item["Region, foto"],
             item["Land, foto"]
@@ -468,7 +468,7 @@ class CypernImage():
             newdesc += kw + ", "
         return newdesc.rstrip(", ")
 
-    def process_addition_of_region_to_description(self, description_str, region_str, country_str):
+    def process_region_addition_to_description(self, description_str, region_str, country_str):
         """
         Add <Region, foto> to description string, except when it is already present, with some smartness.
 
