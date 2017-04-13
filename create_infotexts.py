@@ -108,7 +108,7 @@ def create_people_mapping_wikitable(people_mapping):
 
 def create_smvk_mm_link(item):
     """Populates template SMVK-MM-link and appends to dictionary."""
-    smvk_link = "{{{{SMVK-MM-LINK|{postnr}|{fotonr}}}}}".format(postnr=item["Postnummer"], fotonr=item["Fotonummer"])
+    smvk_link = "{{{{SMVK-MM-link|{postnr}|{fotonr}}}}}".format(postnr=item["Postnummer"], fotonr=item["Fotonummer"])
 
     return smvk_link
 
