@@ -119,7 +119,7 @@ def generate_infobox_template(item, img, places_mapping):
     if item["Beskrivning"]:
         infobox += img.data["enriched_description"]
     else:
-        infobox += "Svenska Cypernexpeditionen 1927-1931" # Generates six cases only
+        infobox += "Svenska Cypernexpeditionen 1927-1931"  # Generates six cases only
         img.meta_cats.append("Media_contributed_by_SMVK_with_poor_description")
 
     infobox += "}}\n"
@@ -207,6 +207,7 @@ def main():
     outfile.close()
 
 
+# noinspection PyArgumentList,PyArgumentList
 class CypernImage:
     """Process the information for a single image."""
 
@@ -240,7 +241,7 @@ class CypernImage:
         # Enrich with keywords
         if self.data["keyword_list"]:
             for keyword in self.data["keyword_list"]:
-                if not keyword in item["Beskrivning"]:
+                if keyword not in item["Beskrivning"]:
                     fname_str += keyword + " "
 
         # Enrich with regional data
@@ -255,7 +256,7 @@ class CypernImage:
 
         # Ensure first descriptive part is not empty
         if fname_str == " ":
-            fname_str = fname_str.replace(" ","")
+            fname_str = fname_str.replace(" ", "")
             fname_str += "Svenska Cypernexpeditionen 1927-1931"
 
         # Batch information
@@ -387,7 +388,7 @@ class CypernImage:
                 self.meta_cats.append("Media_contributed_by_SMVK_without_mapped_place_value")
                 place_as_wikitext = place_string
 
-            # Don't forget to add the commons categories, even though only wikidata is used in depicted people field
+                # Don't forget to add the commons categories, even though only wikidata is used in depicted people field
                 if places_mapping[place_string].get('commonscat'):
                     self.content_cats.append(places_mapping[place_string]["commonscat"])
 
