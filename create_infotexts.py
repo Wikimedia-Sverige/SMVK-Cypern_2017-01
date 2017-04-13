@@ -52,16 +52,15 @@ def create_commons_filename(metadata, fotonr):
     :param fotonr: string representing the <Fotonummer> field in the metadata
     :return: string
     """
-    if not metadata[fotonr]["Beskrivning"] == "":
-        cleaned_fname = helpers.format_filename(metadata[fotonr]["Beskrivning"], "SMVK-MM-Cypern",
-                                                metadata[fotonr]["Fotonummer"])
-        # print("Fname using BatchUploadTools: {}".format(cleaned_fname))
-    else:
-        # TODO: Generate better descriptions, see https://phabricator.wikimedia.org/T158945
-        beskr = "Svenska Cypernexpeditionen 1927-1931"
-        cleaned_fname = helpers.format_filename(beskr, "SMVK-MM-Cypern", metadata[fotonr]["Fotonummer"])
+    # TODO: handle images without description https://phabricator.wikimedia.org/T162274
+    # enriched_description = enrich_description_for_filename(metadata[fotonr])
+    # cleaned_fname = helpers.format_filename(enriched_description,
+    #                                        "SMVK-MM-Cypern",
+    #                                        metadata[fotonr]["Fotonummer"]
+    #                                        )
 
-    return cleaned_fname  # Assuming extension will be added på PrepUpload
+    # return cleaned_fname  # Assuming extension will be added på PrepUpload
+    pass
 
 
 def load_json_metadata(infile):
@@ -124,6 +123,8 @@ def generate_infobox_template(item, img, places_mapping):
     # run CypernImage processing
     img.process_depicted_people(item["Personnamn / avbildad"])
     img.process_depicted_place(item["Ort, foto"], places_mapping)
+    img.generate_list_of_stripped_keywords(item["Nyckelord"])
+    img.enrich_description_field(item)
 
     infobox = ""
     infobox += "{{Photograph \n"
@@ -137,15 +138,13 @@ def generate_infobox_template(item, img, places_mapping):
     infobox += "| title               =\n"
 
     infobox += "| description        = {{sv| "
-    if not item["Beskrivning"] == "":
-        # print("item['Beskrivning']: {}".format(item["Beskrivning"]))
-        cleaned_beskrivning = re.sub(" Svenska Cypernexpeditionen\.?", "", item["Beskrivning"])
-        infobox += cleaned_beskrivning
-        if not cleaned_beskrivning.endswith("."):
-            infobox += "."
-    infobox += " Svenska Cypernexpeditionen 1927-1931."
-    if not item["Nyckelord"] == "" and not item["Nyckelord"] == "Svenska Cypernexpeditionen":
-        infobox += "<br /> ''Nyckelord:''\n" + item["Nyckelord"]
+
+    if item["Beskrivning"]:
+        infobox += img.data["enriched_description"]
+    else:
+        # TODO: Handle images with no description https://phabricator.wikimedia.org/T162274
+        pass
+
     infobox += "}}\n"
     infobox += "{{en|The Swedish Cyprus expedition 1927-1931}}"
     infobox += "\n"
@@ -214,10 +213,8 @@ def main():
     for fotonr in metadata:
         img_info = {}
 
-        full_infotext = ""
-
         commons_filename = create_commons_filename(metadata, fotonr)
-        #print("New filename: {}".format(commons_filename))
+
         img_info["filename"] = commons_filename
 
         img = CypernImage()
@@ -228,13 +225,13 @@ def main():
 
         img_info["meta_cats"] = img.meta_cats
 
-        #print(infobox + "\n--------------\n")
         batch_info[fotonr] = img_info
 
     outfile.write(json.dumps(batch_info, ensure_ascii=False, indent=4))
     outfile.close()
 
-class CypernImage():
+
+class CypernImage:
     """Process the information for a single image."""
 
     def __init__(self):
@@ -247,7 +244,6 @@ class CypernImage():
                       "Media_contributed_by_SMVK_2017-02"]
 
         self.meta_cats.extend(batch_cats)
-
 
     def process_depicted_people(self, names_string):
         """
@@ -272,8 +268,6 @@ class CypernImage():
             wikitext_names.append(self.select_best_mapping_for_depicted_person(name))
 
         self.data["depicted_people"] = "/".join(wikitext_names)
-
-
 
     @staticmethod
     def isolate_name(names_string):
@@ -335,7 +329,6 @@ class CypernImage():
 
         return name_as_wikitext
 
-
     def process_depicted_place(self, place_string, places_mapping):
         """
         Create wikiformat depicted place string from raw input data.
@@ -381,8 +374,66 @@ class CypernImage():
             self.meta_cats.append("Media_contributed_by_SMVK_without_mapped_place_value")
             place_as_wikitext = place_string
 
-
         self.data["depicted_place"] = place_as_wikitext
+
+    def generate_list_of_stripped_keywords(self, keyword_string):
+        """
+        Transform string of keywords from column <Nyckelord> to list of keywords.
+        Remove "Svenska Cypernexpeditionen" if present.
+
+        :param keyword_string: String from column <Nyckelord.
+        :return: list of keywords.
+        """
+        keywords_list = keyword_string.split(", ")
+        if "Svenska Cypernexpeditionen" in keywords_list:
+            keywords_list.remove("Svenska Cypernexpeditionen")
+
+        self.data["keyword_list"] = keywords_list
+
+    def enrich_description_field(self, item):
+        """
+        Try to add keywords and regional information to description.
+
+        :param item: dictionary containing metadata for one image.
+        :return: string representing altered description.
+        """
+        description = re.sub(" Svenska Cypernexpeditionen\.?", "", item["Beskrivning"])
+
+        if not description.endswith("."):
+            description += "."
+
+        # Step 1 in enrichment process
+
+        description += " Svenska Cypernexpeditionen 1927-1931. "
+
+        # step 2 in enrichment process
+        description += self.process_region_addition_to_description(
+            item["Region, foto"],
+            item["Land, foto"]
+        )
+
+        # step 3 in enrichment process
+        if self.data["keyword_list"]:
+            description += "<br>''Nyckelord:'' {}".format(', '.join(self.data["keyword_list"]))
+
+        self.data["enriched_description"] = description
+
+    @staticmethod
+    def process_region_addition_to_description(region_str, country_str):
+        """
+        Add <Region, foto> to description string, except when it is already present, with some smartness.
+
+        :param region_str: String with the field value from column <Region ,foto> in metadata.
+        :param country_str: String with the field value from column <Land> in metadata. 
+        :return: String with formatted region to add to description
+        """
+        region_addition = ""
+        if region_str:
+            region_addition += "<br>''Region:'' " + region_str
+            if country_str:
+                region_addition += ", " + country_str
+
+        return region_addition
 
 
 if __name__ == '__main__':
