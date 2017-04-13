@@ -192,12 +192,7 @@ def main():
         img.generate_list_of_stripped_keywords(metadata[fotonr]["Nyckelord"])
         img.create_commons_filename(metadata[fotonr])
 
-        img_info = {}
-
-
-
-        img_info["filename"] = img.filename
-
+        img_info = {"filename": img.filename}
 
         infobox = generate_infobox_template(metadata[fotonr], img, places_mapping)
         img_info["info"] = infobox
