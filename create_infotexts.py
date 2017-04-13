@@ -139,7 +139,7 @@ def generate_infobox_template(item, img, places_mapping):
 
     infobox += "| description        = {{sv| "
 
-    if not item["Beskrivning"] == "":
+    if item["Beskrivning"]:
         infobox += img.data["enriched_description"]
     else:
         # TODO: Handle images with no description https://phabricator.wikimedia.org/T162274
@@ -379,6 +379,7 @@ class CypernImage:
     def generate_list_of_stripped_keywords(self, keyword_string):
         """
         Transform string of keywords from column <Nyckelord> to list of keywords.
+        Remove "Svenska Cypernexpeditionen" if present.
 
         :param keyword_string: String from column <Nyckelord.
         :return: list of keywords.
@@ -387,100 +388,52 @@ class CypernImage:
         if "Svenska Cypernexpeditionen" in keywords_list:
             keywords_list.remove("Svenska Cypernexpeditionen")
 
-        self.data["Nyckelord"] = keywords_list
-
-    @staticmethod
-    def remove_svenska_cypernexpedition_from_description(description):
-        """
-        Remove the string "Svenska Cypernexpeditionen" from description, since it's in all descriptions.
-
-        :param description: string containg the field value for column <Beskrivning> plus potential enrichments.
-        :return: String with "Svenska Cypernexpeditionen" removed.
-        """
-        new_string = re.sub(" Svenska Cypernexpeditionen\.?", "", description)
-
-        return new_string
+        self.data["keyword_list"] = keywords_list
 
     def enrich_description_field(self, item):
         """
         Try to add keywords and regional information to description.
 
         :param item: dictionary containing metadata for one image.
-        :return: string representing altered or unaltered description.
+        :return: string representing altered description.
         """
-        description = self.remove_svenska_cypernexpedition_from_description(item["Beskrivning"])
+        description = re.sub(" Svenska Cypernexpeditionen\.?", "", item["Beskrivning"])
 
         if not description.endswith("."):
             description += "."
 
-        # step 1 in enrichment process
-        description_with_region = self.process_region_addition_to_description(
-            description,
+        # Step 1 in enrichment process
+
+        description += " Svenska Cypernexpeditionen 1927-1931. "
+
+        # step 2 in enrichment process
+        description += self.process_region_addition_to_description(
             item["Region, foto"],
             item["Land, foto"]
         )
 
-        # step 2 in enrichment process
-        description_with_keywords = self.process_keyword_addition_to_description(
-            description_with_region
-        )
+        # step 3 in enrichment process
+        if self.data["keyword_list"]:
+            description += "<br>''Nyckelord:'' {}".format(', '.join(self.data["keyword_list"]))
 
-        # Step 3 in enrichment process
-
-        batch_description = ". Svenska Cypernexpeditionen 1927-1931."
-        full_description = description_with_keywords.rstrip(".") + batch_description
-
-        self.data["enriched_description"] = full_description
-
-    def process_keyword_addition_to_description(self, description_str):
-        """
-        Append keywords to description, unless the only keyword is "Svenska Cypernexpeditionen". 
-
-        :param description_str: string respresenting the value of column <Beskrivning>.
-        :return: string with added keywords, if existing 
-        """
-        if self.data["Nyckelord"]:
-            for kw in self.data["Nyckelord"]:
-                if not kw.lower() in description_str.lower():
-                    return self.append_keywords_to_desc(description_str, self.data["Nyckelord"])
-                else:
-                    return description_str
-        else:
-            return description_str
+        self.data["enriched_description"] = description
 
     @staticmethod
-    def append_keywords_to_desc(description_str, kw_list):
-        """
-        Append a list of keywords to the existing <Beskrivning> field value.
-
-        :param description_str: string representing column <Beskrivning> in metadata.
-        :param kw_list: preprocessed list of keywords found in column <Nyckelord>.
-        :return: string representing concatenation of old <Beskrivning> plus keywords list.
-        """
-        newdesc = description_str
-        newdesc += " ''Nyckelord:'' "
-
-        for kw in kw_list:
-            newdesc += kw + ", "
-        return newdesc.rstrip(", ")
-
-    @staticmethod
-    def process_region_addition_to_description(description_str, region_str, country_str):
+    def process_region_addition_to_description(region_str, country_str):
         """
         Add <Region, foto> to description string, except when it is already present, with some smartness.
 
-        :param description_str: String representing the processed/enriched description incl. <Nyckelord>.
         :param region_str: String with the field value from column <Region ,foto> in metadata.
         :param country_str: String with the field value from column <Land> in metadata. 
-        :return: String with possibly enriched description.
+        :return: String with formatted region to add to description
         """
-        newdesc = description_str
+        region_addition = ""
         if region_str:
-            newdesc += " ''Region:'' " + region_str
+            region_addition += "<br>''Region:'' " + region_str
             if country_str:
-                newdesc += ", " + country_str
+                region_addition += ", " + country_str
 
-        return newdesc
+        return region_addition
 
 
 if __name__ == '__main__':
