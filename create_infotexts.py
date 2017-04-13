@@ -41,28 +41,6 @@ def load_places_mapping():
     return places_dict
 
 
-def create_commons_filename(metadata, fotonr):
-    """
-    Transform original filename into Wikimedia commons style filename.
-
-    See https://phabricator.wikimedia.org/T156612 for definition.
-    Note: the returned filename does not include file extension e.g. '.tif'
-
-    :param metadata: dictionary
-    :param fotonr: string representing the <Fotonummer> field in the metadata
-    :return: string
-    """
-    # TODO: handle images without description https://phabricator.wikimedia.org/T162274
-    # enriched_description = enrich_description_for_filename(metadata[fotonr])
-    # cleaned_fname = helpers.format_filename(enriched_description,
-    #                                        "SMVK-MM-Cypern",
-    #                                        metadata[fotonr]["Fotonummer"]
-    #                                        )
-
-    # return cleaned_fname  # Assuming extension will be added på PrepUpload
-    pass
-
-
 def load_json_metadata(infile):
     """
     Load metadata json blob as dictionary for further processing.
@@ -211,13 +189,14 @@ def main():
     metadata = load_json_metadata(metadata_json)
     batch_info = {}
     for fotonr in metadata:
+        img = CypernImage()
         img_info = {}
 
-        commons_filename = create_commons_filename(metadata, fotonr)
+        img.create_commons_filename(metadata[fotonr])
 
-        img_info["filename"] = commons_filename
+        img_info["filename"] = img.filename
 
-        img = CypernImage()
+
         infobox = generate_infobox_template(metadata[fotonr], img, places_mapping)
         img_info["info"] = infobox
 
@@ -239,11 +218,24 @@ class CypernImage:
         self.content_cats = []  # content cateogories without 'Category:'-prefix
         self.meta_cats = []  # maintance categories without 'Category:'-prefix
         self.data = {}  # dictionary holding individual field values as wikitext
+        self.filename = ""  # without filename extension
 
         batch_cats = ["Swedish Cyprus Expedition",
                       "Media_contributed_by_SMVK_2017-02"]
 
         self.meta_cats.extend(batch_cats)
+
+    def create_commons_filename(self, item):
+        """
+        Transform original filename into Wikimedia commons style filename.
+
+        See https://phabricator.wikimedia.org/T156612 for definition.
+        Note: the returned filename does not include file extension e.g. '.tif'
+
+        :param item: dictionary conatining metadata for one image
+        :return: None (populates self.filename)
+        """
+        pass
 
     def process_depicted_people(self, names_string):
         """
