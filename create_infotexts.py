@@ -101,7 +101,6 @@ def generate_infobox_template(item, img, places_mapping):
     # run CypernImage processing
     img.process_depicted_people(item["Personnamn / avbildad"])
     img.process_depicted_place(item["Ort, foto"], places_mapping)
-    img.generate_list_of_stripped_keywords(item["Nyckelord"])
     img.enrich_description_field(item)
 
     infobox = ""
@@ -120,8 +119,8 @@ def generate_infobox_template(item, img, places_mapping):
     if item["Beskrivning"]:
         infobox += img.data["enriched_description"]
     else:
-        # TODO: Handle images with no description https://phabricator.wikimedia.org/T162274
-        pass
+        infobox += "Svenska Cypernexpeditionen 1927-1931" # Generates six cases only
+        img.meta_cats.append("Media_contributed_by_SMVK_with_poor_description")
 
     infobox += "}}\n"
     infobox += "{{en|The Swedish Cyprus expedition 1927-1931}}"
@@ -190,9 +189,12 @@ def main():
     batch_info = {}
     for fotonr in metadata:
         img = CypernImage()
+        img.generate_list_of_stripped_keywords(metadata[fotonr]["Nyckelord"])
+        img.create_commons_filename(metadata[fotonr])
+
         img_info = {}
 
-        img.create_commons_filename(metadata[fotonr])
+
 
         img_info["filename"] = img.filename
 
@@ -235,7 +237,39 @@ class CypernImage:
         :param item: dictionary conatining metadata for one image
         :return: None (populates self.filename)
         """
-        pass
+        fname_str = ""
+        fname_str += re.sub(" Svenska Cypernexpeditionen\.?", "", item["Beskrivning"])
+        if not fname_str.endswith(" "):
+            fname_str += " "
+
+        # Enrich with keywords
+        if self.data["keyword_list"]:
+            for keyword in self.data["keyword_list"]:
+                if not keyword in item["Beskrivning"]:
+                    fname_str += keyword + " "
+
+        # Enrich with regional data
+        if not item["Ort, foto"] in item["Beskrivning"]:
+            fname_str += item["Ort, foto"] + " "
+
+        if not item["Region, foto"] in item["Beskrivning"]:
+            fname_str += item["Region, foto"] + " "
+
+        if not item["Land, foto"] in item["Beskrivning"]:
+            fname_str += item["Land, foto"] + " "
+
+        # Ensure first descriptive part is not empty
+        if fname_str == " ":
+            fname_str = fname_str.replace(" ","")
+            fname_str += "Svenska Cypernexpeditionen 1927-1931"
+
+        # Batch information
+        fname_str += "-_SMVK - MM - Cypern_ - _"
+
+        # Ensure unique by adding <Fotonummer>
+        fname_str += item["Fotonummer"]
+
+        self.filename = fname_str
 
     def process_depicted_people(self, names_string):
         """
@@ -371,7 +405,7 @@ class CypernImage:
     def generate_list_of_stripped_keywords(self, keyword_string):
         """
         Transform string of keywords from column <Nyckelord> to list of keywords.
-        Remove "Svenska Cypernexpeditionen" if present.
+        Remove "Svenska Cypernexpeditionen" and "fråga" if present.
 
         :param keyword_string: String from column <Nyckelord.
         :return: list of keywords.
@@ -379,6 +413,12 @@ class CypernImage:
         keywords_list = keyword_string.split(", ")
         if "Svenska Cypernexpeditionen" in keywords_list:
             keywords_list.remove("Svenska Cypernexpeditionen")
+
+        if "fråga" in keywords_list:
+            keywords_list.remove("fråga")
+
+        if "Fråga" in keywords_list:
+            keywords_list.remove("Fråga")
 
         self.data["keyword_list"] = keywords_list
 
