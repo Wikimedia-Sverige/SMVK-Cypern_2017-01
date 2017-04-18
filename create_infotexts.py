@@ -13,6 +13,7 @@ import re
 import pandas as pd
 import batchupload.helpers as helpers
 import numpy as np
+from collections import Counter
 
 people_mapping_file = open("./people_mappings.json")
 people_mapping = json.loads(people_mapping_file.read())
@@ -201,6 +202,8 @@ def main():
     metadata_json = "SMVK-Cypern_2017-01_metadata.json"
     outfile = open("./SMVK-Cypern_2017-02_wikiformat_data.json", "w")
 
+    cats_stats = Counter()
+
     # Hack to printout a wikitable to copy-paste to WikiCommons
     people = create_people_mapping_wikitable(people_mapping)
     # print(people + "\n")
@@ -222,6 +225,7 @@ def main():
         img_info["info"] = infobox
 
         img_info["cats"] = img.content_cats
+        cats_stats["cnt_" + str(len(img.content_cats))] += 1
 
         img_info["meta_cats"] = img.meta_cats
 
@@ -230,6 +234,9 @@ def main():
     outfile.write(json.dumps(batch_info, ensure_ascii=False, indent=4))
     outfile.close()
 
+    print("Content categories statistics\n(No of cats, no of cases)")
+    for res in cats_stats.most_common():
+        print(res)
 
 class CypernImage:
     """Process the information for a single image."""
