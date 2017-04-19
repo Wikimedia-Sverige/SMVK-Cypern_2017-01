@@ -13,6 +13,7 @@ import re
 import pandas as pd
 import batchupload.helpers as helpers
 import numpy as np
+from collections import Counter
 
 people_mapping_file = open("./people_mappings.json")
 people_mapping = json.loads(people_mapping_file.read())
@@ -193,6 +194,18 @@ def generate_infobox_template(item, img, places_mapping):
     return infobox
 
 
+def extract_bigrams_from_wordlist(wordlist):
+    """
+    Produces counted bigrams (two-word combinations) from a list of words.
+
+    :param wordlist: A list of words e.g. ["Svenska", "institutet","vid","brasan"]
+    :return: list of tuples e.g. [(<w1 w2>, <frequency>),(w2 w3), <frequency>...] 
+    """
+    zipped = zip(wordlist, wordlist[1:])
+    for w1, w2 in zipped:
+        yield w1, w2
+
+
 def main():
     """Creation of the infoxtext, i.e. wikitext, that goes along with an uploaded image to Commons.
     
@@ -214,6 +227,15 @@ def main():
 
     # Text analysis of free-text field <Beskrivning>
     desc_sentences = batch.extract_sentences_from_description_field()
+
+    bigram_cnt = Counter()
+    for sentence in desc_sentences:
+        clean_sentence = re.sub(r"[\(\),]", "", sentence)
+        clean_sentence_list = clean_sentence.split()
+        for bigram_tup in extract_bigrams_from_wordlist(clean_sentence_list):
+            bigram_cnt[" ".join(bigram_tup)] += 1
+    print(bigram_cnt.most_common(5))
+
 
 
     batch_info = {}
