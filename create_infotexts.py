@@ -230,6 +230,13 @@ def main():
     outfile.write(json.dumps(batch_info, ensure_ascii=False, indent=4))
     outfile.close()
 
+class CypernBatch:
+    """
+    Process the information for the full batch.
+    """
+    def __init__(self):
+
+
 
 class CypernImage:
     """Process the information for a single image."""
@@ -244,6 +251,7 @@ class CypernImage:
                       "Media_contributed_by_SMVK_2017-02"]
 
         self.meta_cats.extend(batch_cats)
+
 
     def process_depicted_people(self, names_string):
         """
