@@ -234,8 +234,15 @@ def main():
         clean_sentence_list = clean_sentence.split()
         for bigram_tup in extract_bigrams_from_wordlist(clean_sentence_list):
             bigram_cnt[" ".join(bigram_tup)] += 1
-    print(bigram_cnt.most_common(5))
 
+    word_cnt = Counter()
+    for sentence in desc_sentences:
+        clean_sentence = re.sub(r"[\(\),]", "", sentence)
+        clean_sentence_list = clean_sentence.split()
+        for word in clean_sentence_list:
+            word_cnt[word] += 1
+
+    total_cnt = Counter(bigram_cnt + word_cnt)
 
 
     batch_info = {}
