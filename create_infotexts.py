@@ -212,6 +212,10 @@ def main():
 
     batch = CypernBatch(metadata)
 
+    # Text analysis of free-text field <Beskrivning>
+    desc_sentences = batch.extract_sentences_from_description_field()
+
+
     batch_info = {}
     for fotonr in metadata:
         img_info = {}
@@ -241,6 +245,17 @@ class CypernBatch:
         self.metadata = metadata
 
 
+    def extract_sentences_from_description_field(self):
+        """
+        Iterates over field <Beskrivning> in images in metadata and returns list of sentences.
+        
+        :return: list of strings e.g. ["Svenska Cypernexpeditionen","Vy från grav 22".]
+        """
+        sentences = []
+        for fotonr in self.metadata:
+            for sentence in self.metadata[fotonr]["Beskrivning"].split("."):
+                sentences.append(sentence)
+        return sentences
 
 class CypernImage:
     """Process the information for a single image."""
