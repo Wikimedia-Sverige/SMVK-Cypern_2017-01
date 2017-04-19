@@ -209,6 +209,9 @@ def main():
     # print(places_mapping)
 
     metadata = load_json_metadata(metadata_json)
+
+    batch = CypernBatch(metadata)
+
     batch_info = {}
     for fotonr in metadata:
         img_info = {}
@@ -234,7 +237,8 @@ class CypernBatch:
     """
     Process the information for the full batch.
     """
-    def __init__(self):
+    def __init__(self, metadata):
+        self.metadata = metadata
 
 
 
