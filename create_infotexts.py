@@ -207,7 +207,6 @@ def main():
     outfile.close()
 
 
-# noinspection PyArgumentList,PyArgumentList
 class CypernImage:
     """Process the information for a single image."""
 
@@ -216,7 +215,7 @@ class CypernImage:
         self.content_cats = []  # content cateogories without 'Category:'-prefix
         self.meta_cats = []  # maintance categories without 'Category:'-prefix
         self.data = {}  # dictionary holding individual field values as wikitext
-        self.filename = ""  # without filename extension
+        self.filename = None  # without filename extension
 
         batch_cats = ["Swedish Cyprus Expedition",
                       "Media_contributed_by_SMVK_2017-02"]
@@ -233,39 +232,44 @@ class CypernImage:
         :param item: dictionary conatining metadata for one image
         :return: None (populates self.filename)
         """
-        fname_str = ""
-        fname_str += re.sub(" Svenska Cypernexpeditionen\.?", "", item["Beskrivning"])
-        if not fname_str.endswith(" "):
-            fname_str += " "
+        fname_desc = ""
+        fname_desc += re.sub(" Svenska Cypernexpeditionen\.?", "", item["Beskrivning"])
+        if not fname_desc.endswith("."):
+            fname_desc += "."
 
         # Enrich with keywords
+        keywords_to_append = []
         if self.data["keyword_list"]:
             for keyword in self.data["keyword_list"]:
                 if keyword not in item["Beskrivning"]:
-                    fname_str += keyword + " "
+                    keywords_to_append.append(keyword)
+
+        for kw in keywords_to_append:
+            fname_desc += kw + ", "
+        fname_desc.rstrip(", ")
 
         # Enrich with regional data
         if not item["Ort, foto"] in item["Beskrivning"]:
-            fname_str += item["Ort, foto"] + " "
+            fname_desc += item["Ort, foto"] + ", "
 
         if not item["Region, foto"] in item["Beskrivning"]:
-            fname_str += item["Region, foto"] + " "
+            fname_desc += item["Region, foto"] + ", "
 
         if not item["Land, foto"] in item["Beskrivning"]:
-            fname_str += item["Land, foto"] + " "
+            fname_desc += item["Land, foto"] + ", "
 
         # Ensure first descriptive part is not empty
-        if fname_str == " ":
-            fname_str = fname_str.replace(" ", "")
-            fname_str += "Svenska Cypernexpeditionen 1927-1931"
+        if fname_desc == " ":
+            fname_desc = fname_desc.replace(" ", "")
+            fname_desc += "Svenska Cypernexpeditionen 1927-1931"
 
         # Batch information
-        fname_str += "-_SMVK - MM - Cypern_ - _"
+        institution = "SMVK"
 
         # Ensure unique by adding <Fotonummer>
-        fname_str += item["Fotonummer"]
+        idno = item["Fotonummer"]
 
-        self.filename = fname_str
+        self.filename = helpers.format_filename(fname_desc, institution, idno)
 
     def process_depicted_people(self, names_string):
         """
@@ -407,16 +411,17 @@ class CypernImage:
         :return: list of keywords.
         """
         keywords_list = keyword_string.split(", ")
-        if "Svenska Cypernexpeditionen" in keywords_list:
-            keywords_list.remove("Svenska Cypernexpeditionen")
+        keywords_list_low = [kw.lower() for kw in keywords_list]
+        if "Svenska Cypernexpeditionen" in keywords_list_low:
+            keywords_list_low.remove("Svenska Cypernexpeditionen")
 
-        if "fråga" in keywords_list:
-            keywords_list.remove("fråga")
+        if "fråga" in keywords_list_low:
+            keywords_list_low.remove("fråga")
 
-        if "Fråga" in keywords_list:
-            keywords_list.remove("Fråga")
+        if "Fråga" in keywords_list_low:
+            keywords_list_low.remove("Fråga")
 
-        self.data["keyword_list"] = keywords_list
+        self.data["keyword_list"] = keywords_list_low
 
     def enrich_description_field(self, item):
         """
