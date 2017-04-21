@@ -31,13 +31,15 @@ def load_places_mapping():
     places_df.columns = ["freq", "commonscat", "wikidata"]
 
     places_df.replace("-", np.nan)
+    #places_df[places_df["commonscat"] == "-"] = np.nan
 
     places_dict = {}
-
     for index, row in places_df.iterrows():
         places_dict[index] = {}
-        places_dict[index]["commonscat"] = row["commonscat"]
+        if row["commonscat"]:
+            places_dict[index]["commonscat"] = row["commonscat"]
         places_dict[index]["wikidata"] = row["wikidata"]
+
     return places_dict
 
 
@@ -218,6 +220,8 @@ def main():
         img_info["filename"] = commons_filename
 
         img = CypernImage()
+        img.idno = fotonr
+
         infobox = generate_infobox_template(metadata[fotonr], img, places_mapping)
         img_info["info"] = infobox
 
@@ -236,6 +240,7 @@ class CypernImage:
 
     def __init__(self):
         """Instantiate a single instance of a processed image."""
+        self.idno = None
         self.content_cats = []  # content cateogories without 'Category:'-prefix
         self.meta_cats = []  # maintance categories without 'Category:'-prefix
         self.data = {}  # dictionary holding individual field values as wikitext
@@ -342,35 +347,37 @@ class CypernImage:
         """
         place_as_wikitext = ""
 
-        if place_string and place_string in places_mapping:
-            if place_string == "Stockholm":
-                # Mainly interiors from buildings gardens
-                self.meta_cats.append("Media_contributed_by_SMVK_without_mapped_place_value")
-                self.meta_cats.append("Media_contributed_by_SMVK_taken_somewhere_in_Stockholm")
-                place_as_wikitext = "Stockholm"
+        if place_string:
+            if place_string in places_mapping:
+                if place_string == "Stockholm":
+                    # Mainly interiors from buildings gardens
+                    self.meta_cats.append("Media_contributed_by_SMVK_without_mapped_place_value")
+                    self.meta_cats.append("Media_contributed_by_SMVK_taken_somewhere_in_Stockholm")
+                    place_as_wikitext = "Stockholm"
 
-            elif place_string == "Macheras":
-                # No WP article, highly ambiguous. Might refer to "Machairas Monestary"
-                self.meta_cats.append("Media_contributed_by_SMVK_without_mapped_place_value")
-                self.meta_cats.append("Media_contributed_by_SMVK_possibly_depicting_Machairas_Monastary")
-                place_as_wikitext = "Macheras"
+                elif place_string == "Macheras":
+                    # No WP article, highly ambiguous. Might refer to "Machairas Monestary"
+                    self.meta_cats.append("Media_contributed_by_SMVK_without_mapped_place_value")
+                    self.meta_cats.append("Media_contributed_by_SMVK_possibly_depicting_Machairas_Monastary")
+                    place_as_wikitext = "Macheras"
 
-            elif places_mapping[place_string]["wikidata"]:
-                place_as_wikitext += "{{{{city|1={wikidata}}}}}".format(
-                    wikidata=places_mapping[place_string]["wikidata"]
-                )
+                elif places_mapping[place_string]["wikidata"]:
+                    place_as_wikitext += "{{{{city|1={wikidata}}}}}".format(
+                        wikidata=places_mapping[place_string]["wikidata"]
+                        )
+                # Don't forget to add the commons categories, even though only wikidata is used in depicted people field
+                elif places_mapping[place_string].get('commonscat'):
+                    self.content_cats.append(places_mapping[place_string]["commonscat"])
 
             else:
                 place_as_wikitext += place_string
 
-            # Don't forget to add the commons categories, even though only wikidata is used in depicted people field
-            if places_mapping[place_string].get('commonscat'):
-                self.content_cats.append(places_mapping[place_string]["commonscat"])
-
         else:
             place_matches = []
+            place_cnt = 0
             for place in places_mapping:
                 if place.lower() in desc_string.lower():
+                    place_cnt += 1
                     if places_mapping[place]["wikidata"]:
                         place_matches.append("{{{{city|1={wikidata}}}}}".format(
                             wikidata=places_mapping[place]["wikidata"]))
@@ -378,11 +385,17 @@ class CypernImage:
                         place_matches.append(place)
 
                     # Don't forget to add the commons categories if present.
-                    if places_mapping[place].get('commonscat'):
+                    if not places_mapping[place]["commonscat"] == np.nan:
                         self.content_cats.append(places_mapping[place]["commonscat"])
 
             if len(place_matches) == 0:
                 self.meta_cats.append("Media_contributed_by_SMVK_without_mapped_place_value")
+            elif len(place_matches) >=2:
+                print("Found {} places in description! -> {} img: {}".format(
+                    len(place_matches),
+                    place_matches,
+                    self.idno))
+                print("places_mapping: {} idno: {}".format(places_mapping, self.idno))
             else:
                 place_as_wikitext = "/".join(place_matches)
 
