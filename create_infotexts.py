@@ -30,8 +30,7 @@ def load_places_mapping():
     places_df = places_df.set_index("Nyckelord")
     places_df.columns = ["freq", "commonscat", "wikidata"]
 
-    places_df.replace("-", np.nan)
-    #places_df[places_df["commonscat"] == "-"] = np.nan
+    places_df[places_df == "-"] = None
 
     places_dict = {}
     for index, row in places_df.iterrows():
@@ -381,11 +380,9 @@ class CypernImage:
                     if places_mapping[place]["wikidata"]:
                         place_matches.append("{{{{city|1={wikidata}}}}}".format(
                             wikidata=places_mapping[place]["wikidata"]))
-                    else:
-                        place_matches.append(place)
 
                     # Don't forget to add the commons categories if present.
-                    if not places_mapping[place]["commonscat"] == np.nan:
+                    elif places_mapping[place].get('commonscat'):
                         self.content_cats.append(places_mapping[place]["commonscat"])
 
             if len(place_matches) == 0:
