@@ -227,6 +227,8 @@ def main():
 
         batch_info[fotonr] = img_info
 
+        img.add_catch_all_category(metadata[fotonr])
+
     outfile.write(json.dumps(batch_info, ensure_ascii=False, indent=4))
     outfile.close()
 
@@ -367,8 +369,8 @@ class CypernImage:
                 place_as_wikitext = place_string
 
             # Don't forget to add the commons categories, even though only wikidata is used in depicted people field
-                if places_mapping[place_string].get('commonscat'):
-                    self.content_cats.append(places_mapping[place_string]["commonscat"])
+            if places_mapping[place_string].get('commonscat'):
+                self.content_cats.append(places_mapping[place_string]["commonscat"])
 
         else:
             self.meta_cats.append("Media_contributed_by_SMVK_without_mapped_place_value")
@@ -435,6 +437,14 @@ class CypernImage:
 
         return region_addition
 
+    def add_catch_all_category(self, item):
+        """"
+        Check if there are any content cats added and add generic content category to image.
+        
+        :return: None (populates self.content_cats)
+        """
+        if not self.content_cats:
+            self.content_cats.append("Swedish Cyprus Expedition")
 
 if __name__ == '__main__':
     main()
