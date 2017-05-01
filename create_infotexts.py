@@ -239,7 +239,7 @@ class CypernImage:
 
     def __init__(self):
         """Instantiate a single instance of a processed image."""
-        self.idno = None
+        self.idno = None  # <Fotonummer> in metadata, used as unique identifier i filename
         self.content_cats = []  # content cateogories without 'Category:'-prefix
         self.meta_cats = []  # maintance categories without 'Category:'-prefix
         self.data = {}  # dictionary holding individual field values as wikitext
@@ -364,8 +364,12 @@ class CypernImage:
                     place_as_wikitext += "{{{{city|1={wikidata}}}}}".format(
                         wikidata=places_mapping[place_string]["wikidata"]
                         )
+
+                else:
+                    place_as_wikitext += place_string
+
                 # Don't forget to add the commons categories, even though only wikidata is used in depicted people field
-                elif places_mapping[place_string].get('commonscat'):
+                if places_mapping[place_string].get('commonscat'):
                     self.content_cats.append(places_mapping[place_string]["commonscat"])
 
             else:
@@ -373,28 +377,27 @@ class CypernImage:
 
         else:
             place_matches = []
-            place_cnt = 0
             for place in places_mapping:
                 if place.lower() in desc_string.lower():
-                    place_cnt += 1
-                    if places_mapping[place]["wikidata"]:
-                        place_matches.append("{{{{city|1={wikidata}}}}}".format(
-                            wikidata=places_mapping[place]["wikidata"]))
+                    place_matches.append(place)
 
-                    # Don't forget to add the commons categories if present.
-                    elif places_mapping[place].get('commonscat'):
-                        self.content_cats.append(places_mapping[place]["commonscat"])
+            if len(place_matches) == 1:
+                if places_mapping[place]["wikidata"]:
+                    place_matches.append("{{{{city|1={wikidata}}}}}".format(
+                        wikidata=places_mapping[place]["wikidata"]))
+                else:
+                    place_as_wikitext = place
 
-            if len(place_matches) == 0:
-                self.meta_cats.append("Media_contributed_by_SMVK_without_mapped_place_value")
-            elif len(place_matches) >=2:
-                print("Found {} places in description! -> {} img: {}".format(
-                    len(place_matches),
-                    place_matches,
-                    self.idno))
-                print("places_mapping: {} idno: {}".format(places_mapping, self.idno))
+                # Don't forget to add the commons categories if present.
+                if places_mapping[place].get('commonscat'):
+                    self.content_cats.append(places_mapping[place]["commonscat"])
+
             else:
-                place_as_wikitext = "/".join(place_matches)
+                self.meta_cats.append("Media_contributed_by_SMVK_without_mapped_place_value")
+                if len(place_matches) >=2:
+                    print("Found {} places in description! -> {} img: {}".format(
+                        len(place_matches), place_matches, self.idno))
+
 
         self.data["depicted_place"] = place_as_wikitext
 
