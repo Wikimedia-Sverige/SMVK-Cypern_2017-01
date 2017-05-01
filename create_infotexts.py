@@ -154,13 +154,11 @@ def generate_infobox_template(item, img, places_mapping):
     infobox += "| depicted place     = " + img.data["depicted_place"] + "\n"
 
     infobox += "| date               = "
-    if item["Fotodatum"] is not None:
-        if item["Fotodatum"] == "1927-1931" or item["Fotodatum"] == "":
-            infobox += "{{Between|1927|1931}}"
-        else:
-            infobox += str(item["Fotodatum"])
-    else:
+    if not item["Fotodatum"] or item["Fotodatum"] == "1927-1931":
         infobox += "{{Between|1927|1931}}"
+    else:
+        infobox += str(item["Fotodatum"])
+
     infobox += "\n"
 
     infobox += "| medium             = " + "\n"
