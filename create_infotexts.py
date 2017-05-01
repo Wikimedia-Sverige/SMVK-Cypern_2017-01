@@ -244,24 +244,25 @@ class CypernImage:
                 if keyword not in item["Beskrivning"]:
                     keywords_to_append.append(keyword)
 
-        for kw in keywords_to_append:
-            fname_desc += kw + ", "
-        fname_desc.rstrip(", ")
+        if keywords_to_append:
+            fname_desc += " {}.".format(", ".join(keywords_to_append))
 
         # Enrich with regional data
         if not item["Ort, foto"] in item["Beskrivning"]:
-            fname_desc += item["Ort, foto"] + ", "
+            fname_desc += " {}".format(item["Ort, foto"])
 
         if not item["Region, foto"] in item["Beskrivning"]:
-            fname_desc += item["Region, foto"] + ", "
+            fname_desc += " {}".format(item["Region, foto"])
 
         if not item["Land, foto"] in item["Beskrivning"]:
-            fname_desc += item["Land, foto"] + ", "
+            fname_desc += " {}".format(item["Land, foto"])
+
+        if fname_desc.endswith(","):
+            fname_desc = "{}".format(fname_desc.strip(","))
 
         # Ensure first descriptive part is not empty
         if fname_desc == " ":
-            fname_desc = fname_desc.replace(" ", "")
-            fname_desc += "Svenska Cypernexpeditionen 1927-1931"
+            fname_desc = "Svenska Cypernexpeditionen 1927-1931"
 
         # Batch information
         institution = "SMVK"
@@ -418,8 +419,6 @@ class CypernImage:
         if "fråga" in keywords_list_low:
             keywords_list_low.remove("fråga")
 
-        if "Fråga" in keywords_list_low:
-            keywords_list_low.remove("Fråga")
 
         self.data["keyword_list"] = keywords_list_low
 
