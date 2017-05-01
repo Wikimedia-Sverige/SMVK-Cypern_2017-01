@@ -439,12 +439,13 @@ class CypernImage:
 
     def add_catch_all_category(self, item):
         """"
-        Check if there are any content cats added and add generic content category to image.
+        Populate self.content_cat with commons category, if present.
         
-        :return: None (populates self.content_cats)
+        
         """
         if not self.content_cats:
             self.content_cats.append("Swedish Cyprus Expedition")
+            self.meta_cats.append("Media_contributed_by_SMVK_needing additional_categorization")
 
 if __name__ == '__main__':
     main()
