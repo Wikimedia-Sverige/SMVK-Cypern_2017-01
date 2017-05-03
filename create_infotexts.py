@@ -108,7 +108,7 @@ def create_people_mapping_wikitable(people_mapping):
 
 def create_smvk_mm_link(item):
     """Populates template SMVK-MM-link and appends to dictionary."""
-    smvk_link = "{{{{SMVK-MM-LINK|{postnr}|{fotonr}}}}}".format(postnr=item["Postnummer"], fotonr=item["Fotonummer"])
+    smvk_link = "{{{{SMVK-MM-link|{postnr}|{fotonr}}}}}".format(postnr=item["Postnummer"], fotonr=item["Fotonummer"])
 
     return smvk_link
 
@@ -154,8 +154,11 @@ def generate_infobox_template(item, img, places_mapping):
     infobox += "| depicted place     = " + img.data["depicted_place"] + "\n"
 
     infobox += "| date               = "
-    if not item["Fotodatum"] == "":
+    if not item["Fotodatum"] or item["Fotodatum"] == "1927-1931":
+        infobox += "{{Between|1927|1931}}"
+    else:
         infobox += str(item["Fotodatum"])
+
     infobox += "\n"
 
     infobox += "| medium             = " + "\n"
