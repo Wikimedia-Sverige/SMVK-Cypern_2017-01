@@ -369,8 +369,8 @@ class CypernImage:
                 place_as_wikitext = place_string
 
             # Don't forget to add the commons categories, even though only wikidata is used in depicted people field
-            if places_mapping[place_string].get('commonscat'):
-                self.content_cats.append(places_mapping[place_string]["commonscat"])
+                if places_mapping[place_string].get('commonscat'):
+                    self.content_cats.append(places_mapping[place_string]["commonscat"])
 
         else:
             self.meta_cats.append("Media_contributed_by_SMVK_without_mapped_place_value")
@@ -439,9 +439,9 @@ class CypernImage:
 
     def add_catch_all_category(self, item):
         """"
+        Check if there are any content cats added and add generic content category to image.
+        
         Populate self.content_cat with commons category, if present.
-        
-        
         """
         if not self.content_cats:
             self.content_cats.append("Swedish Cyprus Expedition")
