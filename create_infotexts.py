@@ -258,19 +258,13 @@ class CypernImage:
             fname_desc += " {}".format(item["Land, foto"])
 
         if fname_desc.endswith(","):
-            fname_desc = "{}".format(fname_desc.strip(","))
+            fname_desc = "{},".format(fname_desc.strip(","))
 
         # Ensure first descriptive part is not empty
-        if fname_desc == " ":
+        if not fname_desc.strip():
             fname_desc = "Svenska Cypernexpeditionen 1927-1931"
 
-        # Batch information
-        institution = "SMVK"
-
-        # Ensure unique by adding <Fotonummer>
-        idno = item["Fotonummer"]
-
-        self.filename = helpers.format_filename(fname_desc, institution, idno)
+        self.filename = helpers.format_filename(fname_desc, "SMVK", item["Fotonummer"])
 
     def process_depicted_people(self, names_string):
         """
