@@ -249,16 +249,16 @@ class CypernImage:
 
         # Enrich with regional data
         if not item["Ort, foto"] in item["Beskrivning"]:
-            fname_desc += " {}".format(item["Ort, foto"])
+            fname_desc += " {},".format(item["Ort, foto"])
 
         if not item["Region, foto"] in item["Beskrivning"]:
-            fname_desc += " {}".format(item["Region, foto"])
+            fname_desc += " {},".format(item["Region, foto"])
 
         if not item["Land, foto"] in item["Beskrivning"]:
-            fname_desc += " {}".format(item["Land, foto"])
+            fname_desc += " {},".format(item["Land, foto"])
 
         if fname_desc.endswith(","):
-            fname_desc = "{},".format(fname_desc.strip(","))
+            fname_desc = "{}.".format(fname_desc.strip(","))
 
         # Ensure first descriptive part is not empty
         if not fname_desc.strip():
