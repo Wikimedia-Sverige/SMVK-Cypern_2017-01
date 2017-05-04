@@ -20,7 +20,8 @@ people_mapping = json.loads(people_mapping_file.read())
 
 def load_places_mapping():
     """
-    Read wikitable html and return a dictionary
+    Read wikitable html into Pandas DataFrame, transform it and return a dictionary.
+    
     :return: dictionary
     """
     kw_maps_url = "https://commons.wikimedia.org/wiki/Commons:Medelhavsmuseet/batchUploads/Cypern_places"
