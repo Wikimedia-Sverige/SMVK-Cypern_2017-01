@@ -230,6 +230,8 @@ def main():
 
         batch_info[fotonr] = img_info
 
+        img.add_catch_all_category(metadata[fotonr])
+
     outfile.write(json.dumps(batch_info, ensure_ascii=False, indent=4))
     outfile.close()
 
@@ -438,6 +440,15 @@ class CypernImage:
 
         return region_addition
 
+    def add_catch_all_category(self, item):
+        """"
+        Check if there are any content cats added and add generic content category to image.
+        
+        Populate self.content_cat with commons category, if present.
+        """
+        if not self.content_cats:
+            self.content_cats.append("Swedish Cyprus Expedition")
+            self.meta_cats.append("Media_contributed_by_SMVK_needing additional_categorization")
 
 if __name__ == '__main__':
     main()
