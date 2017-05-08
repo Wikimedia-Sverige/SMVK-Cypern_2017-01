@@ -43,28 +43,6 @@ def load_places_mapping():
     return places_dict
 
 
-def create_commons_filename(metadata, fotonr):
-    """
-    Transform original filename into Wikimedia commons style filename.
-
-    See https://phabricator.wikimedia.org/T156612 for definition.
-    Note: the returned filename does not include file extension e.g. '.tif'
-
-    :param metadata: dictionary
-    :param fotonr: string representing the <Fotonummer> field in the metadata
-    :return: string
-    """
-    # TODO: handle images without description https://phabricator.wikimedia.org/T162274
-    # enriched_description = enrich_description_for_filename(metadata[fotonr])
-    # cleaned_fname = helpers.format_filename(enriched_description,
-    #                                        "SMVK-MM-Cypern",
-    #                                        metadata[fotonr]["Fotonummer"]
-    #                                        )
-
-    # return cleaned_fname  # Assuming extension will be added på PrepUpload
-    pass
-
-
 def load_json_metadata(infile):
     """
     Load metadata json blob as dictionary for further processing.
@@ -124,7 +102,8 @@ def generate_infobox_template(item, img, places_mapping):
     """
     # run CypernImage processing
     img.process_depicted_people(item["Personnamn / avbildad"])
-    img.process_depicted_place(item["Ort, foto"], places_mapping, item["Beskrivning"])
+    img.process_depicted_place(item["Ort, foto"], places_mapping)
+    img.enrich_description_field(item)
 
     infobox = ""
     infobox += "{{Photograph \n"
@@ -142,8 +121,8 @@ def generate_infobox_template(item, img, places_mapping):
     if item["Beskrivning"]:
         infobox += img.data["enriched_description"]
     else:
-        # TODO: Handle images with no description https://phabricator.wikimedia.org/T162274
-        pass
+        infobox += "Svenska Cypernexpeditionen 1927-1931"  # Generates six cases only
+        img.meta_cats.append("Media_contributed_by_SMVK_with_poor_description")
 
     infobox += "}}\n"
     infobox += "{{en|The Swedish Cyprus expedition 1927-1931}}"
@@ -213,14 +192,11 @@ def main():
     metadata = load_json_metadata(metadata_json)
     batch_info = {}
     for fotonr in metadata:
-        img_info = {}
-
-        commons_filename = create_commons_filename(metadata, fotonr)
-
-        img_info["filename"] = commons_filename
-
         img = CypernImage()
-        img.idno = fotonr
+        img.generate_list_of_stripped_keywords(metadata[fotonr]["Nyckelord"])
+        img.create_commons_filename(metadata[fotonr])
+
+        img_info = {"filename": img.filename}
 
         infobox = generate_infobox_template(metadata[fotonr], img, places_mapping)
         img_info["info"] = infobox
@@ -246,11 +222,56 @@ class CypernImage:
         self.content_cats = []  # content cateogories without 'Category:'-prefix
         self.meta_cats = []  # maintance categories without 'Category:'-prefix
         self.data = {}  # dictionary holding individual field values as wikitext
+        self.filename = None  # without filename extension
 
         batch_cats = ["Swedish Cyprus Expedition",
                       "Media_contributed_by_SMVK_2017-02"]
 
         self.meta_cats.extend(batch_cats)
+
+    def create_commons_filename(self, item):
+        """
+        Transform original filename into Wikimedia commons style filename.
+
+        See https://phabricator.wikimedia.org/T156612 for definition.
+        Note: the returned filename does not include file extension e.g. '.tif'
+
+        :param item: dictionary conatining metadata for one image
+        :return: None (populates self.filename)
+        """
+        fname_desc = ""
+        fname_desc += re.sub(" Svenska Cypernexpeditionen\.?", "", item["Beskrivning"])
+        if not fname_desc.endswith("."):
+            fname_desc += "."
+
+        # Enrich with keywords
+        keywords_to_append = []
+        if self.data["keyword_list"]:
+            for keyword in self.data["keyword_list"]:
+                if keyword not in item["Beskrivning"]:
+                    keywords_to_append.append(keyword)
+
+        if keywords_to_append:
+            fname_desc += " {}.".format(", ".join(keywords_to_append))
+
+        # Enrich with regional data
+        if not item["Ort, foto"] in item["Beskrivning"]:
+            fname_desc += " {},".format(item["Ort, foto"])
+
+        if not item["Region, foto"] in item["Beskrivning"]:
+            fname_desc += " {},".format(item["Region, foto"])
+
+        if not item["Land, foto"] in item["Beskrivning"]:
+            fname_desc += " {},".format(item["Land, foto"])
+
+        if fname_desc.endswith(","):
+            fname_desc = "{}.".format(fname_desc.strip(","))
+
+        # Ensure first descriptive part is not empty
+        if not fname_desc.strip():
+            fname_desc = "Svenska Cypernexpeditionen 1927-1931"
+
+        self.filename = helpers.format_filename(fname_desc, "SMVK", item["Fotonummer"])
 
     def process_depicted_people(self, names_string):
         """
@@ -397,25 +418,36 @@ class CypernImage:
 
             else:
                 self.meta_cats.append("Media_contributed_by_SMVK_without_mapped_place_value")
-                if len(place_matches) >=2:
-                    print("Found {} places in description! -> {} img: {}".format(
-                        len(place_matches), place_matches, self.idno))
+                place_as_wikitext = place_string
+
+                # Don't forget to add the commons categories, even though only wikidata is used in depicted people field
+                if places_mapping[place_string].get('commonscat'):
+                    self.content_cats.append(places_mapping[place_string]["commonscat"])
+
+        else:
+            self.meta_cats.append("Media_contributed_by_SMVK_without_mapped_place_value")
+            place_as_wikitext = place_string
 
         self.data["depicted_place"] = place_as_wikitext
 
     def generate_list_of_stripped_keywords(self, keyword_string):
         """
         Transform string of keywords from column <Nyckelord> to list of keywords.
-        Remove "Svenska Cypernexpeditionen" if present.
+        Remove "Svenska Cypernexpeditionen" and "fråga" if present.
 
         :param keyword_string: String from column <Nyckelord.
         :return: list of keywords.
         """
         keywords_list = keyword_string.split(", ")
-        if "Svenska Cypernexpeditionen" in keywords_list:
-            keywords_list.remove("Svenska Cypernexpeditionen")
+        keywords_list_low = [kw.lower() for kw in keywords_list]
+        if "Svenska Cypernexpeditionen" in keywords_list_low:
+            keywords_list_low.remove("Svenska Cypernexpeditionen")
 
-        self.data["keyword_list"] = keywords_list
+        if "fråga" in keywords_list_low:
+            keywords_list_low.remove("fråga")
+
+
+        self.data["keyword_list"] = keywords_list_low
 
     def enrich_description_field(self, item):
         """
