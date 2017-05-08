@@ -392,9 +392,9 @@ class CypernImage:
                 else:
                     place_as_wikitext += place_string
 
-                # Don't forget to add the commons categories, even though only wikidata is used in depicted people field
-                if places_mapping[place_string].get('commonscat'):
-                    self.content_cats.append(places_mapping[place_string]["commonscat"])
+            # Don't forget to add the commons categories, even though only wikidata is used in depicted people field
+            if places_mapping[place_string].get('commonscat'):
+                self.content_cats.append(places_mapping[place_string]["commonscat"])
 
             else:
                 place_as_wikitext += place_string
@@ -420,9 +420,6 @@ class CypernImage:
                 self.meta_cats.append("Media_contributed_by_SMVK_without_mapped_place_value")
                 place_as_wikitext = place_string
 
-                # Don't forget to add the commons categories, even though only wikidata is used in depicted people field
-                if places_mapping[place_string].get('commonscat'):
-                    self.content_cats.append(places_mapping[place_string]["commonscat"])
 
 
         self.data["depicted_place"] = place_as_wikitext
