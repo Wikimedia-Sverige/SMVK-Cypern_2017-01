@@ -102,7 +102,7 @@ def generate_infobox_template(item, img, places_mapping):
     """
     # run CypernImage processing
     img.process_depicted_people(item["Personnamn / avbildad"])
-    img.process_depicted_place(item["Ort, foto"], places_mapping)
+    img.process_depicted_place(item["Ort, foto"], places_mapping, item["Beskrivning"])
     img.enrich_description_field(item)
 
     infobox = ""
