@@ -371,11 +371,9 @@ class CypernImage:
         place_as_wikitext = ""
 
         if place_string:
-            # Don't forget to add the commons categories, even though only wikidata is used in depicted people field
-            if places_mapping[place_string].get('commonscat'):
-                self.content_cats.append(places_mapping[place_string]["commonscat"])
 
-            if place_string.lower() in [place.lower() for place in places_mapping.keys()]:
+            if place_string in places_mapping:
+
                 if place_string == "Stockholm":
                     # Mainly interiors from buildings gardens
                     self.meta_cats.append("Media_contributed_by_SMVK_without_mapped_place_value")
@@ -396,6 +394,10 @@ class CypernImage:
                 else:
                     place_as_wikitext += place_string
 
+                # Don't forget to add the commons categories, even though only wikidata is used in depicted people field
+                if places_mapping[place_string].get('commonscat'):
+                    self.content_cats.append(places_mapping[place_string]["commonscat"])
+
             else:
                 place_as_wikitext += place_string
 
@@ -403,19 +405,20 @@ class CypernImage:
         else:
             place_matches = []
             for place in places_mapping:
-                if place.lower() in desc_string.lower():
+                if place in desc_string:
                     place_matches.append(place)
-                    # Don't forget to add the commons categories if present.
-                    if places_mapping[place].get('commonscat'):
-                        self.content_cats.append(places_mapping[place]["commonscat"])
 
             if len(place_matches) == 1:
+                place = place_matches[0]
                 if places_mapping[place]["wikidata"]:
                     place_matches.append("{{{{city|1={wikidata}}}}}".format(
                         wikidata=places_mapping[place]["wikidata"]))
                 else:
                     place_as_wikitext = place
 
+                # Don't forget to add the commons categories if present.
+                if places_mapping[place].get('commonscat'):
+                    self.content_cats.append(places_mapping[place]["commonscat"])
 
             else:
                 self.meta_cats.append("Media_contributed_by_SMVK_without_mapped_place_value")
@@ -495,7 +498,7 @@ class CypernImage:
         
         Populate self.content_cat with commons category, if present.
         """
-        if len(self.content_cats) == 0:
+        if not self.content_cats:
             self.content_cats.append("Swedish Cyprus Expedition")
             self.meta_cats.append("Media_contributed_by_SMVK_needing additional_categorization")
 
