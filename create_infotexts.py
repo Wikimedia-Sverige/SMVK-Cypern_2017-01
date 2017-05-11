@@ -102,7 +102,7 @@ def generate_infobox_template(item, img, places_mapping):
     """
     # run CypernImage processing
     img.process_depicted_people(item["Personnamn / avbildad"])
-    img.process_depicted_place(item["Ort, foto"], places_mapping)
+    img.process_depicted_place(item["Ort, foto"], places_mapping, item["Beskrivning"])
     img.enrich_description_field(item)
 
     infobox = ""
@@ -201,13 +201,13 @@ def main():
         infobox = generate_infobox_template(metadata[fotonr], img, places_mapping)
         img_info["info"] = infobox
 
+        img.add_catch_all_category()
         img_info["cats"] = list(set(img.content_cats))
 
         img_info["meta_cats"] = list(set(img.meta_cats))
 
         batch_info[fotonr] = img_info
 
-        img.add_catch_all_category(metadata[fotonr])
 
     outfile.write(json.dumps(batch_info, ensure_ascii=False, indent=4))
     outfile.close()
@@ -371,7 +371,9 @@ class CypernImage:
         place_as_wikitext = ""
 
         if place_string:
+
             if place_string in places_mapping:
+
                 if place_string == "Stockholm":
                     # Mainly interiors from buildings gardens
                     self.meta_cats.append("Media_contributed_by_SMVK_without_mapped_place_value")
@@ -399,13 +401,15 @@ class CypernImage:
             else:
                 place_as_wikitext += place_string
 
+
         else:
             place_matches = []
             for place in places_mapping:
-                if place.lower() in desc_string.lower():
+                if place in desc_string:
                     place_matches.append(place)
 
             if len(place_matches) == 1:
+                place = place_matches[0]
                 if places_mapping[place]["wikidata"]:
                     place_matches.append("{{{{city|1={wikidata}}}}}".format(
                         wikidata=places_mapping[place]["wikidata"]))
@@ -420,13 +424,7 @@ class CypernImage:
                 self.meta_cats.append("Media_contributed_by_SMVK_without_mapped_place_value")
                 place_as_wikitext = place_string
 
-                # Don't forget to add the commons categories, even though only wikidata is used in depicted people field
-                if places_mapping[place_string].get('commonscat'):
-                    self.content_cats.append(places_mapping[place_string]["commonscat"])
 
-        else:
-            self.meta_cats.append("Media_contributed_by_SMVK_without_mapped_place_value")
-            place_as_wikitext = place_string
 
         self.data["depicted_place"] = place_as_wikitext
 
@@ -494,7 +492,7 @@ class CypernImage:
 
         return region_addition
 
-    def add_catch_all_category(self, item):
+    def add_catch_all_category(self):
         """"
         Check if there are any content cats added and add generic content category to image.
         
