@@ -406,7 +406,8 @@ class CypernImage:
             place_matches = []
             for place in places_mapping:
                 if place in desc_string:
-                    place_matches.append(place)
+                    if not "nicosiavägen" in desc_string.lower():
+                        place_matches.append(place)
 
             if len(place_matches) == 1:
                 place = place_matches[0]
