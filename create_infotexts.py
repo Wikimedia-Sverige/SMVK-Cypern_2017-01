@@ -271,6 +271,8 @@ class CypernImage:
         if not fname_desc.strip():
             fname_desc = "Svenska Cypernexpeditionen 1927-1931"
 
+        fname_desc = fname_desc.replace("svenska cypernexpeditionen", "Svenska Cypernexpeditionen")
+
         self.filename = helpers.format_filename(fname_desc, "SMVK", item["Fotonummer"])
 
     def process_depicted_people(self, names_string):
