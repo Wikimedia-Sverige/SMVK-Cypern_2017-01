@@ -340,9 +340,8 @@ class CypernImage:
         name_map = people_mapping[flipped_name]
         name_as_wikitext = ""
         if "wikidata" in name_map.keys():
-            name_as_wikitext = "[[:d:{wd_item}|{name}]]".format(
-                wd_item=name_map["wikidata"],
-                name=name_map["name"])
+            name_as_wikitext = "{wd_item}".format(
+                wd_item=name_map["wikidata"])
 
         elif "commonscat" in name_map.keys():
             name_as_wikitext = "[[:Category:{commonscat}|{name}]]".format(
