@@ -196,6 +196,7 @@ def main():
         img.generate_list_of_stripped_keywords(metadata[fotonr]["Nyckelord"])
         img.create_commons_filename(metadata[fotonr])
         img.add_cat_archaeological_exhibition_based_on_description(metadata[fotonr]["Beskrivning"])
+        img.add_cat_interior_of_tombs_based_on_description(metadata[fotonr]["Beskrivning"])
 
         img_info = {"filename": img.filename}
 
@@ -242,6 +243,19 @@ class CypernImage:
         """
         if "utställning" in description.lower():
             self.content_cats.append("Archaeological_exhibitions")
+
+    def add_cat_interior_of_tombs_based_on_description(self, description):
+        """
+        Special case fix to add content category in special cases from <Beskrivning>.
+
+        See task: https://phabricator.wikimedia.org/T163316
+
+        Populates self.content_cats
+
+        :return: None
+        """
+        if "interiör" in description and "grav" in description.lower():
+            self.content_cats.append("Interiors_of_tombs")
 
     def create_commons_filename(self, item):
         """
