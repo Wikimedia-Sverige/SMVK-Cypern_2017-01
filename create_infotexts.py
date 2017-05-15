@@ -500,7 +500,6 @@ class CypernImage:
         Populate self.content_cat with commons category, if present.
         """
         if not self.content_cats:
-            self.content_cats.append("Swedish Cyprus Expedition")
             self.meta_cats.append("Media_contributed_by_SMVK_needing additional_categorization")
 
 if __name__ == '__main__':
