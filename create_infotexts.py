@@ -192,11 +192,15 @@ def main():
     metadata = load_json_metadata(metadata_json)
     batch_info = {}
     for fotonr in metadata:
+        desc = metadata[fotonr]["Beskrivning"]
+        keyw = metadata[fotonr]["Nyckelord"]
+        
         img = CypernImage()
-        img.generate_list_of_stripped_keywords(metadata[fotonr]["Nyckelord"])
+        
+        img.generate_list_of_stripped_keywords(keyw)
         img.create_commons_filename(metadata[fotonr])
-        img.add_cat_archaeological_exhibition_based_on_description(metadata[fotonr]["Beskrivning"])
-        img.add_cat_interior_of_tombs_based_on_description(metadata[fotonr]["Beskrivning"])
+        img.special_archaeological_exhibition_cat(desc)
+        img.special_interior_of_tombs_cat(desc)
 
         img_info = {"filename": img.filename}
 
@@ -231,7 +235,8 @@ class CypernImage:
 
         self.meta_cats.extend(batch_cats)
 
-    def add_cat_archaeological_exhibition_based_on_description(self, description):
+
+    def add_cat_archaeological_exhibition_from_description(self, description):
         """
         Special case fix to add content category in special cases from <Beskrivning>.
         
