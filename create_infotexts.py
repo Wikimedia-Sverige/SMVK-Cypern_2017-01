@@ -259,7 +259,7 @@ class CypernImage:
 
         :return: None
         """
-        if "interiör" in description and "grav" in description.lower():
+        if "interiör" in description.lower() and "grav" in description.lower():
             self.content_cats.append("Interiors_of_tombs")
 
     def create_commons_filename(self, item):
