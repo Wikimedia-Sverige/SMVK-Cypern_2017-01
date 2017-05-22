@@ -236,7 +236,7 @@ class CypernImage:
         self.meta_cats.extend(batch_cats)
 
 
-    def add_cat_archaeological_exhibition_from_description(self, description):
+    def special_archaeological_exhibition_cat(self, description):
         """
         Special case fix to add content category in special cases from <Beskrivning>.
         
@@ -249,7 +249,7 @@ class CypernImage:
         if "utställning" in description.lower():
             self.content_cats.append("Archaeological_exhibitions")
 
-    def add_cat_interior_of_tombs_based_on_description(self, description):
+    def special_interior_of_tombs_cat(self, description):
         """
         Special case fix to add content category in special cases from <Beskrivning>.
 
