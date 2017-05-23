@@ -121,11 +121,11 @@ def generate_infobox_template(item, img, places_mapping):
     if item["Beskrivning"]:
         infobox += img.data["enriched_description"]
     else:
-        infobox += "Svenska Cypernexpeditionen 1927-1931"  # Generates six cases only
+        infobox += "Svenska Cypernexpeditionen 1927–1931"  # Generates six cases only
         img.meta_cats.append("Media_contributed_by_SMVK_with_poor_description")
 
     infobox += "}}\n"
-    infobox += "{{en|The Swedish Cyprus expedition 1927-1931}}"
+    infobox += "{{en|The Swedish Cyprus expedition 1927–1931}}"
     infobox += "\n"
 
     infobox += "| depicted people    = " + img.data["depicted_people"] + "\n"
@@ -302,7 +302,9 @@ class CypernImage:
 
         # Ensure first descriptive part is not empty
         if not fname_desc.strip():
-            fname_desc = "Svenska Cypernexpeditionen 1927-1931"
+            fname_desc = "Svenska Cypernexpeditionen 1927–1931"
+
+        fname_desc = fname_desc.replace("svenska cypernexpeditionen", "Svenska Cypernexpeditionen")
 
         self.filename = helpers.format_filename(fname_desc, "SMVK", item["Fotonummer"])
 
@@ -373,9 +375,7 @@ class CypernImage:
         name_map = people_mapping[flipped_name]
         name_as_wikitext = ""
         if "wikidata" in name_map.keys():
-            name_as_wikitext = "[[:d:{wd_item}|{name}]]".format(
-                wd_item=name_map["wikidata"],
-                name=name_map["name"])
+            name_as_wikitext = name_map["wikidata"]
 
         elif "commonscat" in name_map.keys():
             name_as_wikitext = "[[:Category:{commonscat}|{name}]]".format(
@@ -495,7 +495,7 @@ class CypernImage:
 
         # Step 1 in enrichment process
 
-        description += " Svenska Cypernexpeditionen 1927-1931. "
+        description += " Svenska Cypernexpeditionen 1927–1931. "
 
         # step 2 in enrichment process
         description += self.process_region_addition_to_description(
