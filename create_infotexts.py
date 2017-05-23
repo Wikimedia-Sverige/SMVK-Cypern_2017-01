@@ -192,9 +192,15 @@ def main():
     metadata = load_json_metadata(metadata_json)
     batch_info = {}
     for fotonr in metadata:
+        desc = metadata[fotonr]["Beskrivning"]
+        keyw = metadata[fotonr]["Nyckelord"]
+        
         img = CypernImage()
-        img.generate_list_of_stripped_keywords(metadata[fotonr]["Nyckelord"])
+        
+        img.generate_list_of_stripped_keywords(keyw)
         img.create_commons_filename(metadata[fotonr])
+        img.special_archaeological_exhibition_cat(desc)
+        img.special_interior_of_tombs_cat(desc)
 
         img_info = {"filename": img.filename}
 
@@ -228,6 +234,33 @@ class CypernImage:
                       "Media_contributed_by_SMVK_2017-02"]
 
         self.meta_cats.extend(batch_cats)
+
+
+    def special_archaeological_exhibition_cat(self, description):
+        """
+        Special case fix to add content category in special cases from <Beskrivning>.
+        
+        See task: https://phabricator.wikimedia.org/T163317
+        
+        Populates self.content_cats
+        
+        :return: None
+        """
+        if "utställning" in description.lower():
+            self.content_cats.append("Archaeological_exhibitions")
+
+    def special_interior_of_tombs_cat(self, description):
+        """
+        Special case fix to add content category in special cases from <Beskrivning>.
+
+        See task: https://phabricator.wikimedia.org/T163316
+
+        Populates self.content_cats
+
+        :return: None
+        """
+        if "interiör" in description.lower() and "grav" in description.lower():
+            self.content_cats.append("Interiors_of_tombs")
 
     def create_commons_filename(self, item):
         """
@@ -500,7 +533,6 @@ class CypernImage:
         Populate self.content_cat with commons category, if present.
         """
         if not self.content_cats:
-            self.content_cats.append("Swedish Cyprus Expedition")
             self.meta_cats.append("Media_contributed_by_SMVK_needing additional_categorization")
 
 if __name__ == '__main__':
