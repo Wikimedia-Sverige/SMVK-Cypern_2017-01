@@ -222,7 +222,7 @@ def main():
         keyw = metadata[fotonr]["Nyckelord"]
         
         img = CypernImage()
-        
+
         img.generate_list_of_stripped_keywords(keyw)
         img.create_commons_filename(metadata[fotonr])
         img.special_archaeological_exhibition_cat(desc)
@@ -234,6 +234,12 @@ def main():
         img_info["info"] = infobox
 
         img.add_catch_all_category()
+
+        for kw in img.data["keyword_list"]:
+            if kw in keywords_mapping.keys():
+                if "commonscat" in keywords_mapping[kw]:
+                    img.content_cats.append(keywords_mapping[kw]["commonscat"])
+      
         img_info["cats"] = list(set(img.content_cats))
 
         img_info["meta_cats"] = list(set(img.meta_cats))
@@ -489,7 +495,7 @@ class CypernImage:
         self.data["depicted_place"] = place_as_wikitext
         
     
-    def process_keywords(self):
+    def process_keywords(self, item, mapping):
         """
         Add potential content categories from column <Nyckelord>.
         
@@ -507,15 +513,14 @@ class CypernImage:
         :return: list of keywords.
         """
         keywords_list = keyword_string.split(", ")
-        keywords_list_low = [kw.lower() for kw in keywords_list]
-        if "Svenska Cypernexpeditionen" in keywords_list_low:
-            keywords_list_low.remove("Svenska Cypernexpeditionen")
+        if "Svenska Cypernexpeditionen" in keywords_list:
+            keywords_list.remove("Svenska Cypernexpeditionen")
 
-        if "fråga" in keywords_list_low:
-            keywords_list_low.remove("fråga")
+        if "Fråga" in keywords_list:
+            keywords_list.remove("Fråga")
 
 
-        self.data["keyword_list"] = keywords_list_low
+        self.data["keyword_list"] = keywords_list
 
     def enrich_description_field(self, item):
         """
