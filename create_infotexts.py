@@ -490,6 +490,16 @@ class CypernImage:
 
 
         self.data["depicted_place"] = place_as_wikitext
+        
+    
+    def process_keywords(self):
+        """
+        Add potential content categories from column <Nyckelord>.
+        
+        Populates self.content_cats
+        
+        :return: None
+        """
 
     def generate_list_of_stripped_keywords(self, keyword_string):
         """
@@ -565,5 +575,4 @@ class CypernImage:
             self.meta_cats.append("Media_contributed_by_SMVK_needing additional_categorization")
 
 if __name__ == '__main__':
-    load_keywords_mapping()
     main()
