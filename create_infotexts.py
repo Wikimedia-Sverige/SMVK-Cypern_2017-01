@@ -51,18 +51,15 @@ def load_keywords_mapping():
     """
     kw_maps_url = "https://commons.wikimedia.org/wiki/Commons:Medelhavsmuseet/batchUploads/Cypern_keywords"
     keywords = pd.read_html(kw_maps_url, attrs={"class": "wikitable sortable"}, header=0)
-    kw1 = keywords[0]
-    kw2 = keywords[1]
-    kw3 = keywords[2]
+    kw1 = keywords[0] # First is the actual column <Nyceklord>
     
-    merged = kw1.append([kw2, kw3])
-    merged = merged.set_index("Nyckelord")
-    merged = merged[["Commons category", "wikidata"]] # Remove col "fredquency" for boolean filtering to work
+    kw1 = kw1.set_index("Nyckelord")
+    kw1 = kw1[["Commons category", "wikidata"]] # Remove col "fredquency" for boolean filtering to work
     
-    merged[merged == "-"] = None  # Pandas "boolean indexing" kung-fu to replace all "-" with None
+    kw1[kw1 == "-"] = None  # Pandas "boolean indexing" kung-fu to replace all "-" with None
     
     kw_dict = {}
-    for index, row in merged.iterrows():
+    for index, row in kw1.iterrows():
         kw_dict[index] = {}
         if row["Commons category"]:
             kw_dict[index]["commonscat"] = row["Commons category"]
