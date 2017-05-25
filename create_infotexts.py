@@ -43,6 +43,34 @@ def load_places_mapping():
     return places_dict
 
 
+def load_keywords_mapping():
+    """
+    Read wikitable html into Pandas DataFrame, transform it and return a dictionary.
+    
+    :return: dictionary
+    """
+    kw_maps_url = "https://commons.wikimedia.org/wiki/Commons:Medelhavsmuseet/batchUploads/Cypern_keywords"
+    keywords = pd.read_html(kw_maps_url, attrs={"class": "wikitable sortable"}, header=0)
+    kw1 = keywords[0]
+    kw2 = keywords[1]
+    kw3 = keywords[2]
+    
+    merged = kw1.append([kw2, kw3])
+    merged = merged.set_index("Nyckelord")
+    merged = merged[["Commons category", "wikidata"]] # Remove col "fredquency" for boolean filtering to work
+    
+    merged[merged == "-"] = None  # Pandas "boolean indexing" kung-fu to replace all "-" with None
+    
+    kw_dict = {}
+    for index, row in merged.iterrows():
+        kw_dict[index] = {}
+        if row["Commons category"]:
+            kw_dict[index]["commonscat"] = row["Commons category"]
+        kw_dict[index]["wikidata"] = row["wikidata"] # should always be present
+    
+    return kw_dict
+    
+
 def load_json_metadata(infile):
     """
     Load metadata json blob as dictionary for further processing.
@@ -187,6 +215,7 @@ def main():
     # people = create_people_mapping_wikitable(people_mapping)
 
     places_mapping = load_places_mapping()
+    keywords_mapping = load_keywords_mapping()
     # print(places_mapping)
 
     metadata = load_json_metadata(metadata_json)
@@ -536,4 +565,5 @@ class CypernImage:
             self.meta_cats.append("Media_contributed_by_SMVK_needing additional_categorization")
 
 if __name__ == '__main__':
+    load_keywords_mapping()
     main()
