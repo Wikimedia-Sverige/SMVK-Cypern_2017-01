@@ -50,16 +50,16 @@ def load_keywords_mapping():
     :return: dictionary
     """
     kw_maps_url = "https://commons.wikimedia.org/wiki/Commons:Medelhavsmuseet/batchUploads/Cypern_keywords"
-    keywords = pd.read_html(kw_maps_url, attrs={"class": "wikitable sortable"}, header=0)
-    kw1 = keywords[0] # First is the actual column <Nyceklord>
-    
-    kw1 = kw1.set_index("Nyckelord")
-    kw1 = kw1[["Commons category", "wikidata"]] # Remove col "fredquency" for boolean filtering to work
-    
-    kw1[kw1 == "-"] = None  # Pandas "boolean indexing" kung-fu to replace all "-" with None
+    tables = pd.read_html(kw_maps_url, attrs={"class": "wikitable sortable"}, header=0)
+    keywords = tables[0] # First table is the actual column <Nyceklord>
+
+    keywords = keywords.set_index("Nyckelord")
+    keywords = keywords[["Commons category", "wikidata"]] # Remove col "frequency" for boolean filtering to work
+
+    keywords[keywords == "-"] = None  # Pandas "boolean indexing" kung-fu to replace all "-" with None
     
     kw_dict = {}
-    for index, row in kw1.iterrows():
+    for index, row in keywords.iterrows():
         kw_dict[index] = {}
         if row["Commons category"]:
             kw_dict[index]["commonscat"] = row["Commons category"]
@@ -235,10 +235,7 @@ def main():
 
         img.add_catch_all_category()
 
-        for kw in img.data["keyword_list"]:
-            if kw in keywords_mapping.keys():
-                if "commonscat" in keywords_mapping[kw]:
-                    img.content_cats.append(keywords_mapping[kw]["commonscat"])
+        img.process_keywords(keywords_mapping)
       
         img_info["cats"] = list(set(img.content_cats))
 
@@ -495,7 +492,7 @@ class CypernImage:
         self.data["depicted_place"] = place_as_wikitext
         
     
-    def process_keywords(self, item, mapping):
+    def process_keywords(self, mapping):
         """
         Add potential content categories from column <Nyckelord>.
         
@@ -503,6 +500,11 @@ class CypernImage:
         
         :return: None
         """
+        for kw in self.data["keyword_list"]:
+            if kw in mapping.keys():
+                if mapping[kw].get("commonscat"):
+                    self.content_cats.append(mapping[kw]["commonscat"])
+                    print("Added category {}".format(mapping[kw]["commonscat"]))
 
     def generate_list_of_stripped_keywords(self, keyword_string):
         """
