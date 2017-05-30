@@ -51,10 +51,10 @@ def load_keywords_mapping():
     """
     kw_maps_url = "https://commons.wikimedia.org/wiki/Commons:Medelhavsmuseet/batchUploads/Cypern_keywords"
     tables = pd.read_html(kw_maps_url, attrs={"class": "wikitable sortable"}, header=0)
-    keywords = tables[0] # First table is the actual column <Nyceklord>
+    keywords = tables[0]  # irst table is the one corresponding to <Nyckelord>
 
     keywords = keywords.set_index("Nyckelord")
-    keywords = keywords[["Commons category", "wikidata"]] # Remove col "frequency" for boolean filtering to work
+    keywords = keywords[["Commons category", "wikidata"]]  # Remove col "frequency" for boolean filtering to work
 
     keywords[keywords == "-"] = None  # Pandas "boolean indexing" kung-fu to replace all "-" with None
     
@@ -63,7 +63,7 @@ def load_keywords_mapping():
         kw_dict[index] = {}
         if row["Commons category"]:
             kw_dict[index]["commonscat"] = row["Commons category"]
-        kw_dict[index]["wikidata"] = row["wikidata"] # should always be present
+        kw_dict[index]["wikidata"] = row["wikidata"]  # should always be present
     
     return kw_dict
     
@@ -497,8 +497,6 @@ class CypernImage:
         Add potential content categories from column <Nyckelord>.
         
         Populates self.content_cats
-        
-        :return: None
         """
         for kw in self.data["keyword_list"]:
             if kw in mapping.keys():
