@@ -51,7 +51,7 @@ def load_keywords_mapping():
     """
     kw_maps_url = "https://commons.wikimedia.org/wiki/Commons:Medelhavsmuseet/batchUploads/Cypern_keywords"
     tables = pd.read_html(kw_maps_url, attrs={"class": "wikitable sortable"}, header=0)
-    keywords = tables[0]  # irst table is the one corresponding to <Nyckelord>
+    keywords = tables[0]  # First table is the one corresponding to <Nyckelord>
 
     keywords = keywords.set_index("Nyckelord")
     keywords = keywords[["Commons category", "wikidata"]]  # Remove col "frequency" for boolean filtering to work
