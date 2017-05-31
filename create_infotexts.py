@@ -175,7 +175,7 @@ def generate_infobox_template(item, img, places_mapping):
 
     infobox += "| references         = " + "\n"
 
-    infobox += "| objects history    = " + "\n"
+    infobox += "| object history    = " + "\n"
 
     infobox += "| exhibition history = " + "\n"
 
