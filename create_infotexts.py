@@ -43,6 +43,31 @@ def load_places_mapping():
     return places_dict
 
 
+def load_keywords_mapping():
+    """
+    Read wikitable html into Pandas DataFrame, transform it and return a dictionary.
+    
+    :return: dictionary
+    """
+    kw_maps_url = "https://commons.wikimedia.org/wiki/Commons:Medelhavsmuseet/batchUploads/Cypern_keywords"
+    tables = pd.read_html(kw_maps_url, attrs={"class": "wikitable sortable"}, header=0)
+    keywords = tables[0]  # First table is the one corresponding to <Nyckelord>
+
+    keywords = keywords.set_index("Nyckelord")
+    keywords = keywords[["Commons category", "wikidata"]]  # Remove col "frequency" for boolean filtering to work
+
+    keywords[keywords == "-"] = None  # Pandas "boolean indexing" kung-fu to replace all "-" with None
+    
+    kw_dict = {}
+    for index, row in keywords.iterrows():
+        kw_dict[index] = {}
+        if row["Commons category"]:
+            kw_dict[index]["commonscat"] = row["Commons category"]
+        kw_dict[index]["wikidata"] = row["wikidata"]  # should always be present
+    
+    return kw_dict
+    
+
 def load_json_metadata(infile):
     """
     Load metadata json blob as dictionary for further processing.
@@ -187,6 +212,7 @@ def main():
     # people = create_people_mapping_wikitable(people_mapping)
 
     places_mapping = load_places_mapping()
+    keywords_mapping = load_keywords_mapping()
     # print(places_mapping)
 
     metadata = load_json_metadata(metadata_json)
@@ -196,7 +222,7 @@ def main():
         keyw = metadata[fotonr]["Nyckelord"]
         
         img = CypernImage()
-        
+
         img.generate_list_of_stripped_keywords(keyw)
         img.create_commons_filename(metadata[fotonr])
         img.special_archaeological_exhibition_cat(desc)
@@ -208,6 +234,9 @@ def main():
         img_info["info"] = infobox
 
         img.add_catch_all_category()
+
+        img.process_keywords(keywords_mapping)
+      
         img_info["cats"] = list(set(img.content_cats))
 
         img_info["meta_cats"] = list(set(img.meta_cats))
@@ -461,6 +490,19 @@ class CypernImage:
 
 
         self.data["depicted_place"] = place_as_wikitext
+        
+    
+    def process_keywords(self, mapping):
+        """
+        Add potential content categories from column <Nyckelord>.
+        
+        Populates self.content_cats
+        """
+        for kw in self.data["keyword_list"]:
+            if kw in mapping.keys():
+                if mapping[kw].get("commonscat"):
+                    self.content_cats.append(mapping[kw]["commonscat"])
+                    print("Added category {}".format(mapping[kw]["commonscat"]))
 
     def generate_list_of_stripped_keywords(self, keyword_string):
         """
@@ -471,15 +513,14 @@ class CypernImage:
         :return: list of keywords.
         """
         keywords_list = keyword_string.split(", ")
-        keywords_list_low = [kw.lower() for kw in keywords_list]
-        if "Svenska Cypernexpeditionen" in keywords_list_low:
-            keywords_list_low.remove("Svenska Cypernexpeditionen")
+        if "Svenska Cypernexpeditionen" in keywords_list:
+            keywords_list.remove("Svenska Cypernexpeditionen")
 
-        if "fråga" in keywords_list_low:
-            keywords_list_low.remove("fråga")
+        if "Fråga" in keywords_list:
+            keywords_list.remove("Fråga")
 
 
-        self.data["keyword_list"] = keywords_list_low
+        self.data["keyword_list"] = keywords_list
 
     def enrich_description_field(self, item):
         """
